@@ -4,7 +4,6 @@
 Compatible map: [zh_Elusive](https://vcodmods.com/maps/zh_elusive-battle-royal-template-)
 
 Some features are:
-- Skydive from plane
-- Shrinking zone
-- Bolt action rifles only with instant kill
+- Shrinking zone (using efx)
+- Skydive from plane (using `setVelocity()`)
 - Last kill slow motion
