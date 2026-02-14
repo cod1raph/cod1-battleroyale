@@ -38,8 +38,10 @@ main()
     level.damageFeedback = true;
     if(getCvar("br_damagefeedback") == "0")
         level.damageFeedback = false;
-    
     level.zoneDuration = 120;
+    if(getCvarInt("br_zoneDuration"))
+        level.zoneDuration = getCvarInt("br_zoneDuration");
+
     level.killcamDuration = 5;
     
     //MODEL PATHS
@@ -52,9 +54,11 @@ main()
     level.camouflages[1] = "british";
     level.camouflages[2] = "german";
     level.camouflages[3] = "russian";
-
-    zoneOriginStart = (-540, -450, -330); //~center of map (zh_elusive)
+    
+    zoneOriginStart = (-540, -450, -900); //~center of map (zh_elusive)
     level.zone = spawn("script_model", zoneOriginStart);
+    level.zoneStatic = spawn("script_model", zoneOriginStart);
+
     level.zone.angles = (270, 0, 0); //DEPENDS ON MODELS TAG
     level.zone.modelTag = "bip01 spine2";
     level.zone.objnum = 0;
@@ -63,13 +67,13 @@ main()
 
     level.zone.modes[0]["id"] = "start";
     level.zone.modes[0]["fxId"] = loadfx("fx/zone-start.efx");
-    level.zone.modes[0]["startSize"] = "20000";
+    level.zone.modes[0]["startSize"] = "19000";
 
     level.zone.modes[1]["id"] = "start_1";
     level.zone.modes[1]["fxId"] = loadfx("fx/zone-start_1.efx");
-    level.zone.modes[1]["life"] = "9500";
+    level.zone.modes[1]["life"] = "6000";
     level.zone.modes[1]["startSize"] = level.zone.modes[1-1]["startSize"];
-    level.zone.modes[1]["endSize"] = "7000";
+    level.zone.modes[1]["endSize"] = "15500";
 
     level.zone.modes[2]["id"] = "1";
     level.zone.modes[2]["fxId"] = loadfx("fx/zone1.efx");
@@ -79,7 +83,7 @@ main()
     level.zone.modes[3]["fxId"] = loadfx("fx/zone1_2.efx");
     level.zone.modes[3]["life"] = "6000";
     level.zone.modes[3]["startSize"] = level.zone.modes[3-1]["startSize"];
-    level.zone.modes[3]["endSize"] = "3800";
+    level.zone.modes[3]["endSize"] = "11000";
 
     level.zone.modes[4]["id"] = "2";
     level.zone.modes[4]["fxId"] = loadfx("fx/zone2.efx");
@@ -89,7 +93,7 @@ main()
     level.zone.modes[5]["fxId"] = loadfx("fx/zone2_3.efx");
     level.zone.modes[5]["life"] = "6000";
     level.zone.modes[5]["startSize"] = level.zone.modes[5-1]["startSize"];
-    level.zone.modes[5]["endSize"] = "2700";
+    level.zone.modes[5]["endSize"] = "7200";
 
     level.zone.modes[6]["id"] = "3";
     level.zone.modes[6]["fxId"] = loadfx("fx/zone3.efx");
@@ -99,7 +103,7 @@ main()
     level.zone.modes[7]["fxId"] = loadfx("fx/zone3_4.efx");
     level.zone.modes[7]["life"] = "6000";
     level.zone.modes[7]["startSize"] = level.zone.modes[7-1]["startSize"];
-    level.zone.modes[7]["endSize"] = "1500";
+    level.zone.modes[7]["endSize"] = "3700";
 
     level.zone.modes[8]["id"] = "4";
     level.zone.modes[8]["fxId"] = loadfx("fx/zone4.efx");
@@ -109,27 +113,17 @@ main()
     level.zone.modes[9]["fxId"] = loadfx("fx/zone4_5.efx");
     level.zone.modes[9]["life"] = "6000";
     level.zone.modes[9]["startSize"] = level.zone.modes[9-1]["startSize"];
-    level.zone.modes[9]["endSize"] = "800";
+    level.zone.modes[9]["endSize"] = "1320";
 
     level.zone.modes[10]["id"] = "5";
     level.zone.modes[10]["fxId"] = loadfx("fx/zone5.efx");
     level.zone.modes[10]["startSize"] = level.zone.modes[10-1]["endSize"];
 
-    level.zone.modes[11]["id"] = "5_6";
-    level.zone.modes[11]["fxId"] = loadfx("fx/zone5_6.efx");
+    level.zone.modes[11]["id"] = "5_end";
+    level.zone.modes[11]["fxId"] = loadfx("fx/zone5_end.efx");
     level.zone.modes[11]["life"] = "6000";
     level.zone.modes[11]["startSize"] = level.zone.modes[11-1]["startSize"];
-    level.zone.modes[11]["endSize"] = "300";
-
-    level.zone.modes[12]["id"] = "6";
-    level.zone.modes[12]["fxId"] = loadfx("fx/zone6.efx");
-    level.zone.modes[12]["startSize"] = level.zone.modes[12-1]["endSize"];
-
-    level.zone.modes[13]["id"] = "6_end";
-    level.zone.modes[13]["fxId"] = loadfx("fx/zone6_end.efx");
-    level.zone.modes[13]["life"] = "6000";
-    level.zone.modes[13]["startSize"] = level.zone.modes[13-1]["startSize"];
-    level.zone.modes[13]["endSize"] = "0";
+    level.zone.modes[11]["endSize"] = "0";
 
     level.color_red = (1, 0, 0);
     level.color_blue = (0, 0, 1);
@@ -218,7 +212,8 @@ Callback_StartGameType()
     objective_onEntity(level.zone.objnum, level.zone);
     objective_team(level.zone.objnum, "none");
     level.zone setModel(level.model_zone);
-
+    level.zoneStatic setModel(level.model_zone);
+    
     thread manageZoneLifecycle();
     thread checkBattleReady();
 }
@@ -228,7 +223,7 @@ Callback_PlayerConnect()
     self waittill("begin");
     self.statusicon = "";
 
-    if(game["state"] == "intermission")
+    if (game["state"] == "intermission")
     {
         spawnIntermission();
         return;
@@ -253,10 +248,10 @@ Callback_PlayerConnect()
     {
         self waittill("menuresponse", menu, response);
 
-        if(response == "open" || response == "close")
+        if (response == "open" || response == "close")
             continue;
 
-        if(menu == game["menu_camouflage"])
+        if (menu == game["menu_camouflage"])
         {
             switch(response)
             {
@@ -273,7 +268,7 @@ Callback_PlayerConnect()
                     response = level.camouflages[randomInt(level.camouflages.size)];
 
                 self.fights = true;
-                if(isDefined(self.pers["camouflage"]))
+                if (isDefined(self.pers["camouflage"]))
                 {
                     //Selected another camouflage
                     self.pers["camouflage"] = response;
@@ -291,7 +286,7 @@ Callback_PlayerConnect()
 
             case "spectator":
                 self.fights = false;
-                if(isDefined(self.pers["camouflage"]))
+                if (isDefined(self.pers["camouflage"]))
                 {
                     self.pers["weapon"] = undefined;
                     self.pers["camouflage"] = undefined;
@@ -307,14 +302,14 @@ Callback_PlayerConnect()
                 break;
             }
         }
-        else if(menu == game["menu_weapon_all"])
+        else if (menu == game["menu_weapon_all"])
         {
-            if(response == "camouflage")
+            if (response == "camouflage")
             {
                 self openMenu(game["menu_camouflage"]);
                 continue;
             }
-            else if(response == "viewmap")
+            else if (response == "viewmap")
             {
                 continue;
             }
@@ -327,11 +322,11 @@ Callback_PlayerConnect()
             if(isDefined(self.pers["weapon"]) && self.pers["weapon"] == weapon)
                 continue; //Selected same weapon
 
-            if(isDefined(self.pers["weapon"]))
+            if (isDefined(self.pers["weapon"]))
             {
                 //Selected another weapon
                 self.pers["weapon"] = weapon;
-                if(!self.inPlane)
+                if (!self.inPlane)
                 {
                     self takeWeapon(self getWeaponSlotWeapon("primary"));
                     self giveWeapon(self.pers["weapon"]);
@@ -375,24 +370,27 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
     if(iDamage < 1)
         iDamage = 1;
 
-    if(isDefined(eAttacker) && isPlayer(eAttacker) && isAlive(eAttacker))
+    if (isDefined(eAttacker) && isPlayer(eAttacker) && isAlive(eAttacker))
     {
-        if(sMeansOfDeath != "MOD_FALL" && sMeansOfDeath != "MOD_MELEE")
+        if (sMeansOfDeath != "MOD_FALL" && sMeansOfDeath != "MOD_MELEE")
         {
-            if(isBoltWeapon(sWeapon)) {
+            if (isBoltWeapon(sWeapon))
+            {
                 if(level.instantKill_bolt)
                     iDamage = iDamage + 100;
             }
-            else if(isSecondaryWeapon(sWeapon)) {
+            else if (isSecondaryWeapon(sWeapon))
+            {
                 if(level.instantKill_pistol)
                     iDamage = iDamage + 100;
             }
         }
-        else if(sMeansOfDeath == "MOD_MELEE")
+        else if (sMeansOfDeath == "MOD_MELEE")
         {
             if(level.instantKill_melee)
                 iDamage = iDamage + 100;
         }
+
         if(eAttacker != self && level.damageFeedback)
             eAttacker thread showDamageFeedback();
     }
@@ -400,7 +398,7 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
     if(!level.battleStarted)
         return;
 
-    if((self.health - iDamage) <= 0)
+    if ((self.health - iDamage) <= 0)
     {
         // Player will die
         // Make the player drop his weapons
@@ -444,9 +442,9 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
     attackerNum = -1;
     level.playercam = attacker;// getEntityNumber();
 
-    if(isPlayer(attacker))
+    if (isPlayer(attacker))
     {
-        if(attacker == self) // killed himself
+        if (attacker == self) // killed himself
         {
             doKillcam = false;
             attacker.score = attacker.pers["score"];
@@ -471,7 +469,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
     delay = 2;	// Delay the player becoming a spectator till after he's done dying
     wait delay;	// ?? Also required for Callback_PlayerKilled to complete before killcam can execute
     
-    if(doKillcam && !level.battleOver)
+    if (doKillcam && !level.battleOver)
     {
         self thread killcam(attacker, delay, false);
     }
@@ -495,7 +493,7 @@ spawnSpectator(origin, angles, died)
     
     resettimeout();
 
-    if(!isDefined(died))
+    if (!isDefined(died))
     {
         self.statusicon = "";
         self.sessionteam = "spectator";
@@ -504,8 +502,10 @@ spawnSpectator(origin, angles, died)
     self.spectatorclient = -1;
     self.archivetime = 0;
 
-    if(isDefined(origin) && isDefined(angles))
+    if (isDefined(origin) && isDefined(angles))
+    {
         self spawn(origin, angles);
+    }
     else
     {
         spawnpointname = "mp_deathmatch_intermission";
@@ -531,7 +531,7 @@ spawnPlayer(origin, angles)
     self.spectatorclient = -1;
     self.archivetime = 0;
 
-    if(isDefined(origin) && isDefined(angles))
+    if (isDefined(origin) && isDefined(angles))
     {
         self spawn(origin, angles);
     }
@@ -557,7 +557,7 @@ spawnPlayer(origin, angles)
 
     model();
 
-    if(!self.inPlane)
+    if (!self.inPlane)
     {
         loadout();
         self giveWeapon(self.pers["weapon"]);
@@ -638,12 +638,12 @@ checkBattleReady()
     for(;;)
     {
         numberOfReadyPlayers = [];
-        for(i = 0; i < level.maxClients; i++)
+        for (i = 0; i < level.maxClients; i++)
         {
             player = getEntByNum(i);
-            if(isDefined(player))
+            if (isDefined(player))
             {
-                if(isDefined(player.pers["connected"]))
+                if (isDefined(player.pers["connected"]))
                 {
                     //PLAYER IS CONNECTED
                     if(player.fights)
@@ -653,11 +653,11 @@ checkBattleReady()
         }
         level.hud_playersReady setValue(numberOfReadyPlayers.size);
 
-        if(numberOfReadyPlayers.size > 0) //AT LEAST 1 READY PLAYER
+        if (numberOfReadyPlayers.size > 0) //AT LEAST 1 READY PLAYER
         {
-            if(numberOfReadyPlayers.size < level.minPlayers) //MIN PLAYERS NOT REACHED YET
+            if (numberOfReadyPlayers.size < level.minPlayers) //MIN PLAYERS NOT REACHED YET
             {
-                if(level.startingBattle) //Lost required players count, reset
+                if (level.startingBattle) //Lost required players count, reset
                 {
                     level notify("battle_cancel");
                     level.startingBattle = false;
@@ -680,9 +680,9 @@ checkBattleReady()
                     level.hud_waitingForPlayers.label = level.text_waitingPlayers;
                 }
             }
-            else if(numberOfReadyPlayers.size >= level.minPlayers) //MIN PLAYERS REACHED, START COUNTDOWN
+            else if (numberOfReadyPlayers.size >= level.minPlayers) //MIN PLAYERS REACHED, START COUNTDOWN
             {
-                if(numberOfReadyPlayers.size <= level.maxClients && !level.startingBattle)
+                if (numberOfReadyPlayers.size <= level.maxClients && !level.startingBattle)
                 {
                     level.hud_waitingForPlayers.color = level.color_red;
                     level.hud_waitingForPlayers.label = &"BATTLE STARTING ";
@@ -740,7 +740,7 @@ startBattle()
 
     //MAKE PLAYERS TO FOLLOW THE PLANE
     players = getEntArray("player", "classname");
-    for(i = 0; i < players.size; i++)
+    for (i = 0; i < players.size; i++)
     {
         player = players[i];
 
@@ -756,7 +756,7 @@ startBattle()
             player.pers["weapon"] = "mosin_nagant_mp";
 
         player spawnPlayer(originPlanePov, anglesPlanePov);
-        player showToPlayer(player); //TODO: use a skydive model instead
+        player showToPlayer(player); // Player invisible while following plane.
         player linkto(level.planePov);
         player thread checkPlayerInZone();
         player thread checkPlayerJumped();
@@ -766,17 +766,17 @@ startBattle()
     level.planePov moveY(moveDestination, moveDelay);
 
     wait moveDelay;
-    for(i = 0; i < players.size; i++)
+    for (i = 0; i < players.size; i++)
     {
         player = players[i];
-        if(isAlive(player) && !player.jumped)
+        if (isAlive(player) && !player.jumped)
         {
             player.forceJump = true;
         }
     }
-    wait 3; // TODO: Figure out why this delay is here.
-    everyoneJumped = true;
-    for(i = 0; i < players.size; i++)
+    //wait 3; // TODO: Figure out why this delay is here.
+    //everyoneJumped = true;
+    /*for(i = 0; i < players.size; i++)
     {
         player = players[i];
         if(isAlive(player) && !player.jumped) // TODO: Figure out why this.
@@ -784,13 +784,17 @@ startBattle()
             everyoneJumped = false;
             break;
         }
-    }
-    if(everyoneJumped)
-    {
+    }*/
+
+
+
+
+    //if(everyoneJumped)
+    //{
         level.plane stopLoopSound();
         level.plane delete();
         level.planePov delete();
-    }
+    //}
 }
 
 //ZONE FUNCTIONS
@@ -823,20 +827,20 @@ setupZone(zoneModeIndex)
 {
     printLn("### setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
 
-    if(!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) //STATIC ZONE
+    if (!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) //STATIC ZONE
     {
-        if(level.zone.active)
+        if (level.zone.active)
         {
             printLn("### ERROR: Static zone already active");
             return;
         }
 
         level.zone.indexMode = zoneModeIndex;
-        level.zone.life = 1000;
+        level.zone.life = 10000;
         level.zone.currentSize = (int)level.zone.modes[zoneModeIndex]["startSize"];
         level.zone thread playZone(level.zone.modes[zoneModeIndex]["fxId"], true);
 
-        if(zoneModeIndex != 0) //START ZONE NO COUNTDOWN
+        if (zoneModeIndex != 0) //START ZONE NO COUNTDOWN
         {
             //Reset HUD
             x = level.hud_zoneShrinkAlert.x;
@@ -855,7 +859,17 @@ setupZone(zoneModeIndex)
     else //SHRINKING ZONE
     {
         level.zone.active = false;
-        level.zoneLooper delete();
+        
+        level notify("zone_static_stop");
+        printLn("######### zoneStatic flip angle");
+        /*
+        Before reading this comment, see first explanation in playZone()
+        Thought about making the zone go down the map to hide it, but moveTo()/moveZ() didn't want to make the 
+        efx go down/through the floor. So now flipping angles[0] to hide the zone under the map.
+        To replace the angles, the efx requires "flags relative"
+        */
+        level.zoneStatic.angles = (0 - level.zone.angles[0], level.zone.angles[1], level.zone.angles[2]);
+        
         level.zone.indexMode = zoneModeIndex;
         level.zone.life = (int)level.zone.modes[zoneModeIndex]["life"];
         level.zone.startSize = (int)level.zone.modes[zoneModeIndex]["startSize"];
@@ -877,21 +891,43 @@ setupZone(zoneModeIndex)
         level.hud_zoneShrinkAlert.label = level.text_zoneIsShrinking;
         level.hud_zoneShrinkAlert setTimer(level.zone.life / 1000);
     }
+
     level.zone.active = true;
 }
 playZone(fx, static)
 {
     printLn("### playZone");
 
-    if(static)
+    if (static)
     {
-        level.zoneLooper = playLoopedFX(fx, (self.life / 1000), self.origin);
+        /*
+        To play the static zone efx, I encountered an issue with playLoopedFX(),
+        when calling hide() or delete() on its returned ent, that didn't stop/hid the efx before completion,
+        so the problem was you would see the static zone still playing behind the shrinking zone.
+
+        A solution could have been to use static zones with a very short life, but when looping the static zone,
+        you can see some frequent blinking, not perfectly regularly though.
+        This is probably caused by the delay between the server informing the client to play again the efx.
+        Longer is the life, less blinking there is.
+
+        So now using playFXOnTag() to be able to hide it afterwards by using a trick, see comment in setupZone().
+        */
+        
+        for(;;)
+        {
+            level endon("zone_static_stop");
+
+            level.zoneStatic.angles = level.zone.angles; // Reset angle to initial value.
+            printLn("######### playFXOnTag zoneStatic");
+            playFXOnTag(fx, level.zoneStatic, level.zone.modelTag);
+            wait 10;
+        }
     }
     else
     {
-        wait 0.5; //.05 was not enough
         playFXOnTag(fx, self, self.modelTag);
-        if(self.indexMode != level.zone.modes.size - 1) //FINAL FULL SHRINKS DOESNT PLAY NEXT
+        
+        if (self.indexMode != level.zone.modes.size - 1) //FINAL FULL SHRINKS DOESNT PLAY NEXT
         {
             wait (self.life / 1000);
             //PLAY NEXT STATIC ZONE
@@ -900,6 +936,8 @@ playZone(fx, static)
         }
         else
         {
+            printLn("### playZone FINAL");
+
             wait (self.life / 1000);
             //Destroy HUD
             level.hud_zoneShrinkAlert destroy();
@@ -913,6 +951,7 @@ moveZone() //TODO: move zone while shrinking
     zoneY = self.origin[1];
     zoneZ = self.origin[2];
     destinationOrigin = (zoneX, zoneY + 800, zoneZ);
+    // To move, the efx requires "flags relative"
     self moveTo(destinationOrigin, (self.life / 1000));
     wait (self.life / 1000);
     self delete();
@@ -965,16 +1004,16 @@ checkPlayerInZone()
             zoneOriginNoZ = (zoneOriginX, zoneOriginY, 0);
 
             inZone = (distance(selfOriginNoZ, zoneOriginNoZ) < level.zone.currentSize);
-            if(inZone && !self.inZone)
+            if (inZone && !self.inZone)
             {
                 //ENTERED ZONE
                 self.inZone = true;
                 self.hudInStormDarkness.alpha = 0;
                 self.hudInStormAlert setText(&"");
             }
-            else if(!inZone)
+            else if (!inZone)
             {
-                if(self.inZone)
+                if (self.inZone)
                 {
                     //ENTERED STORM
                     self.inZone = false;
@@ -982,27 +1021,25 @@ checkPlayerInZone()
                     self.hudInStormAlert setText(&"You are in the storm!");
                 }
 
-                if(level.battleOver)
+                if (level.battleOver)
                 {
                     wait .05;
                     continue;
                 }
 
                 damagePlayer = false;
-                if(isDefined(self.lastZoneDamageTime))
+                if (isDefined(self.lastZoneDamageTime))
                 {
                     secondsPassed = (getTime() - self.lastZoneDamageTime) / 1000;
                     if(secondsPassed > 2)
-                    {
                         damagePlayer = true;
-                    }
                 }
                 else
                 {
                     damagePlayer = true;
                 }
 
-                if(damagePlayer)
+                if (damagePlayer)
                 {
                     eInflictor = level.zone;
                     eAttacker = level.zone;
@@ -1045,7 +1082,7 @@ checkPlayerJumped()
         if(self getStance() != "stand")
             self setClientCvar("cl_stance", "0");
 
-        if(self jumpButtonPressed() || isDefined(self.forceJump))
+        if (self jumpButtonPressed() || isDefined(self.forceJump))
         {
             self.jumped = true;
 
@@ -1057,7 +1094,7 @@ checkPlayerJumped()
             anglesBeforeSpawn = self getPlayerAngles();
             self spawnPlayer(level.planePov.origin, anglesBeforeSpawn);
             self.inPlane = false;
-            self showToPlayer(undefined);
+            self showToPlayer(undefined); // Player is visible again.
 
             delayExitPlane = 0.35;
             underPlaneOrigin =
@@ -1153,13 +1190,13 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
         if(self rightButtonPressed())
             goingRight = true;
 
-        if(goingLeft && goingRight)
+        if (goingLeft && goingRight)
         {
             //left + right = none
             goingLeft = false;
             goingRight = false;
         }
-        if(goingForward && goingBackward)
+        if (goingForward && goingBackward)
         {
             //forward + backward = none
             goingForward = false;
@@ -1168,15 +1205,15 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
 
         //PARACHUTE STATE CHECK
         checkParachute = false;
-        if(self jumpButtonPressed() && !self.blockParachuteCheck)
+        if (self jumpButtonPressed() && !self.blockParachuteCheck)
         {
             self.blockParachuteCheck = true;
             self thread checkReleasedUseButton();
             checkParachute = true;
         }
-        if(checkParachute)
+        if (checkParachute)
         {
-            if(!self.parachuteEnabled)
+            if (!self.parachuteEnabled)
             {
                 //OPENED
                 self.hud_parachuteStateIndicator.color = level.color_green;
@@ -1205,20 +1242,16 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
         isLookingUp = false;
         isLookingDown = false;
         if(angles[0] < -30)
-        {
             isLookingUp = true;
-        }
         else if(angles[0] > 30)
-        {
             isLookingDown = true;
-        }
         
         //APPLY MOTION EFFECTS
-        if(self.parachuteEnabled)
+        if (self.parachuteEnabled)
         {
-            if(goingForward)
+            if (goingForward)
             {
-                if(isLookingUp) //Prevent acceleration from pushing upward
+                if (isLookingUp) //Prevent acceleration from pushing upward
                 {
                     //AS IDLE
                     newVelocity_x = velocity[0];
@@ -1226,14 +1259,14 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                     newVelocity_z = velocity[2];
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_idle);
                 }
-                else if(goingLeft)
+                else if (goingLeft)
                 {
                     newVelocity_x = velocity[0] + (forwardDirection[0] + leftDirection[0]) * acceleration_parachute_forwardLeftRight;
                     newVelocity_y = velocity[1] + (forwardDirection[1] + leftDirection[1]) * acceleration_parachute_forwardLeftRight;
                     newVelocity_z = velocity[2] + (forwardDirection[2] + leftDirection[2]) * acceleration_parachute_forwardLeftRight;
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_forward);
                 }
-                else if(goingRight)
+                else if (goingRight)
                 {
                     newVelocity_x = velocity[0] + (forwardDirection[0] + rightDirection[0]) * acceleration_parachute_forwardLeftRight;
                     newVelocity_y = velocity[1] + (forwardDirection[1] + rightDirection[1]) * acceleration_parachute_forwardLeftRight;
@@ -1249,9 +1282,9 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_forward);
                 }
             }
-            else if(goingBackward)
+            else if (goingBackward)
             {
-                if(isLookingDown) //Prevent acceleration from pushing upward
+                if (isLookingDown) //Prevent acceleration from pushing upward
                 {
                     //AS IDLE
                     newVelocity_x = velocity[0];
@@ -1259,14 +1292,14 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                     newVelocity_z = velocity[2];
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_idle);
                 }
-                else if(goingLeft)
+                else if (goingLeft)
                 {
                     newVelocity_x = velocity[0] + (backwardDirection[0] + leftDirection[0]) * acceleration_parachute_backwardLeftRight;
                     newVelocity_y = velocity[1] + (backwardDirection[1] + leftDirection[1]) * acceleration_parachute_backwardLeftRight;
                     newVelocity_z = velocity[2] + (backwardDirection[2] + leftDirection[2]) * acceleration_parachute_backwardLeftRight;
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_forward);
                 }
-                else if(goingRight)
+                else if (goingRight)
                 {
                     newVelocity_x = velocity[0] + (backwardDirection[0] + rightDirection[0]) * acceleration_parachute_backwardLeftRight;
                     newVelocity_y = velocity[1] + (backwardDirection[1] + rightDirection[1]) * acceleration_parachute_backwardLeftRight;
@@ -1282,7 +1315,7 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_forward);
                 }
             }
-            else if(goingLeft)
+            else if (goingLeft)
             {
                 //JUST LEFT
                 newVelocity_x = velocity[0] + leftDirection[0] * acceleration_parachute_onlyLeftRight;
@@ -1290,7 +1323,7 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                 newVelocity_z = velocity[2] + leftDirection[2] * acceleration_parachute_onlyLeftRight;
                 newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_forward);
             }
-            else if(goingRight)
+            else if (goingRight)
             {
                 //JUST RIGHT
                 newVelocity_x = velocity[0] + rightDirection[0] * acceleration_parachute_onlyLeftRight;
@@ -1309,9 +1342,9 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
         }
         else //PARACHUTE DISABLED
         {
-            if(goingForward)
+            if (goingForward)
             {
-                if(isLookingUp) //Prevent acceleration from pushing upward
+                if (isLookingUp) //Prevent acceleration from pushing upward
                 {
                     //AS IDLE
                     newVelocity_x = velocity[0];
@@ -1319,14 +1352,14 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                     newVelocity_z = velocity[2];
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_skydive_idle);
                 }
-                else if(goingLeft)
+                else if (goingLeft)
                 {
                     newVelocity_x = velocity[0] + (forwardDirection[0] + leftDirection[0]) * acceleration_skydive_forwardLeftRight;
                     newVelocity_y = velocity[1] + (forwardDirection[1] + leftDirection[1]) * acceleration_skydive_forwardLeftRight;
                     newVelocity_z = velocity[2] + (forwardDirection[2] + leftDirection[2]) * acceleration_skydive_forwardLeftRight;
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_skydive_forward);
                 }
-                else if(goingRight)
+                else if (goingRight)
                 {
                     newVelocity_x = velocity[0] + (forwardDirection[0] + rightDirection[0]) * acceleration_skydive_forwardLeftRight;
                     newVelocity_y = velocity[1] + (forwardDirection[1] + rightDirection[1]) * acceleration_skydive_forwardLeftRight;
@@ -1342,7 +1375,7 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_skydive_forward);
                 }
             }
-            else if(goingLeft)
+            else if (goingLeft)
             {
                 //JUST LEFT
                 newVelocity_x = velocity[0] + leftDirection[0] * acceleration_skydive_onlyLeftRight;
@@ -1350,7 +1383,7 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                 newVelocity_z = velocity[2] + leftDirection[2] * acceleration_skydive_onlyLeftRight;
                 newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_skydive_forward);
             }
-            else if(goingRight)
+            else if (goingRight)
             {
                 //JUST RIGHT
                 newVelocity_x = velocity[0] + rightDirection[0] * acceleration_skydive_onlyLeftRight;
@@ -1380,7 +1413,7 @@ checkLanded()
     
     for(;;)
     {
-        if(self isOnGround())
+        if (self isOnGround())
         {
             self notify("landed");
 
@@ -1388,13 +1421,13 @@ checkLanded()
             self.hud_parachuteStateIndicator destroy();
 
             //Check landed under map
-            if(self.origin[2] < -600)
+            if (self.origin[2] < -600)
             {
                 self suicide();
                 return;
             }
 
-            if(self.parachuteEnabled)
+            if (self.parachuteEnabled)
             {
                 self detach(level.model_parachute, "tag_belt_back");
                 self.parachuteEnabled = false;
@@ -1420,13 +1453,11 @@ updateNumLivingPlayers()
     {
         alivePlayers = 0;
         players = getEntArray("player", "classname");
-        for(i = 0; i < players.size; i++)
+        for (i = 0; i < players.size; i++)
         {
             player = players[i];
-            if(isAlive(player) && player.sessionstate != "spectator")
-            {
+            if (isAlive(player) && player.sessionstate != "spectator")
                 alivePlayers += 1;
-            }
         }
         level.hud_numLivingPlayers setValue(alivePlayers);
 
@@ -1438,7 +1469,7 @@ checkVictoryRoyale()
 {
     if (!level.battleStarted || level.battleOver)
         return;
-    if(level.checkingVictoryRoyale)
+    if (level.checkingVictoryRoyale)
         return;
     level.checkingVictoryRoyale = true;
 
@@ -1446,17 +1477,15 @@ checkVictoryRoyale()
 
     alivePlayers = [];
     players = getEntArray("player", "classname");
-    for(i = 0; i < players.size; i++)
+    for (i = 0; i < players.size; i++)
     {
         player = players[i];
         if(isAlive(player) && player.sessionstate != "spectator")
-        {
             alivePlayers[alivePlayers.size] = player;
-        }
         if(alivePlayers.size > 1)
             break;
     }
-    if(alivePlayers.size == 1)
+    if (alivePlayers.size == 1)
     {
         level.battleOver = true;
 
@@ -1485,7 +1514,7 @@ checkVictoryRoyale()
         wait 4;
         endMap();
     }
-    else if(alivePlayers.size == 0)
+    else if (alivePlayers.size == 0)
     {
         level.battleOver = true;
 
@@ -1559,7 +1588,7 @@ setupFinalKillcam()
 {
     viewers = 0;
     players = getEntArray("player", "classname");
-    for (i = 0; i < players.size; i++)
+    for(i = 0; i < players.size; i++)
     {
         player = players[i];
 
@@ -1575,7 +1604,7 @@ setupFinalKillcam()
         player thread killcam(level.playercam, 2, true);
         viewers++;
     }
-    if (viewers)
+    if(viewers)
         level waittill("finalKillcam_ended");
     
     return;
@@ -1598,7 +1627,7 @@ killcam(attacker, delay, finalKillcam)
     // wait till the next server frame to allow code a chance to update archivetime if it needs trimming
     wait .05;
 
-    if(self.archivetime <= delay)
+    if (self.archivetime <= delay)
     {
         printLn("### self.archivetime <= delay: return");
         self.spectatorclient = -1;
@@ -1609,7 +1638,7 @@ killcam(attacker, delay, finalKillcam)
     if(!finalKillcam)
         self.killcam = true;
 
-    if(!isDefined(self.kc_topbar))
+    if (!isDefined(self.kc_topbar))
     {
         self.kc_topbar = newClientHudElem(self);
         self.kc_topbar.archived = false;
@@ -1618,7 +1647,7 @@ killcam(attacker, delay, finalKillcam)
         self.kc_topbar.alpha = 0.5;
         self.kc_topbar setShader("black", 640, 112);
     }
-    if(!isDefined(self.kc_bottombar))
+    if (!isDefined(self.kc_bottombar))
     {
         self.kc_bottombar = newClientHudElem(self);
         self.kc_bottombar.archived = false;
@@ -1627,7 +1656,7 @@ killcam(attacker, delay, finalKillcam)
         self.kc_bottombar.alpha = 0.5;
         self.kc_bottombar setShader("black", 640, 112);
     }
-    if(!isDefined(self.kc_title))
+    if (!isDefined(self.kc_title))
     {
         self.kc_title = newClientHudElem(self);
         self.kc_title.archived = false;
@@ -1639,7 +1668,7 @@ killcam(attacker, delay, finalKillcam)
         self.kc_title.fontScale = 2.5;
     }
     self.kc_title setText(&"MPSCRIPT_KILLCAM");
-    if(!isDefined(self.kc_skiptext) && !finalKillcam)
+    if (!isDefined(self.kc_skiptext) && !finalKillcam)
     {
         self.kc_skiptext = newClientHudElem(self);
         self.kc_skiptext.archived = false;
@@ -1652,7 +1681,7 @@ killcam(attacker, delay, finalKillcam)
     if(!finalKillcam)
         self.kc_skiptext setText(&"MPSCRIPT_PRESS_ACTIVATE_TO_SKIP");
 
-    if(!finalKillcam)
+    if (!finalKillcam)
     {
         self thread waitSkipKillcamButton();
         self thread waitKillcamTime();
@@ -1669,7 +1698,7 @@ killcam(attacker, delay, finalKillcam)
     if(!finalKillcam)
         self.killcam = undefined;
 
-    if(finalKillcam)
+    if (finalKillcam)
     {
         level notify("finalKillcam_ended");
         return;

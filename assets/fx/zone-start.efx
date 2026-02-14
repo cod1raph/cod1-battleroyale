@@ -2,23 +2,23 @@ Cylinder
 {
 	name				zone-start
 
-	flags				useAlpha
+	flags				useAlpha relative
 
-	life				1000
+	life				10000
 
 	alpha
 	{
-		start			0.85
+		start			0.65
 	}
 
 	size
 	{
-		start			20000
+		start			19000
 	}
 
 	size2
 	{
-		start			20000
+		start			19000
 	}
 
 	length

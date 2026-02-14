@@ -1,6 +1,6 @@
 Cylinder
 {
-	name				zone5_6
+	name				zone5_end
 
 	flags				useAlpha relative
 
@@ -13,15 +13,15 @@ Cylinder
 
 	size
 	{
-		start			800
-		end				300
+		start			1320
+		end				0
 		flags			linear
 	}
 
 	size2
 	{
-		start			800
-		end				300
+		start			1320
+		end				0
 		flags			linear
 	}
 
