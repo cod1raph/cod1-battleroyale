@@ -484,7 +484,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
 spawnSpectator(origin, angles, died)
 {
-    printLn("#### spawnSpectator");
+    printLn("###### [BR] spawnSpectator");
 
     self notify("spawned");
     self notify("spawned_spectator");
@@ -569,7 +569,7 @@ spawnPlayer(origin, angles)
 }
 spawnIntermission()
 {
-    printLn("#### spawnIntermission");
+    printLn("###### [BR] spawnIntermission");
 
     self notify("spawned");
     self notify("end_respawn");
@@ -592,7 +592,7 @@ spawnIntermission()
 
 checkBattleReady()
 {
-    printLn("#### checkBattleReady");
+    printLn("###### [BR] checkBattleReady");
 
     level endon("battle_start");
 
@@ -697,7 +697,7 @@ checkBattleReady()
 }
 startBattle()
 {
-    printLn("#### startBattle");
+    printLn("###### [BR] startBattle");
 
     level endon("battle_cancel");
     level.startingBattle = true;
@@ -718,7 +718,7 @@ startBattle()
     level.hud_numLivingPlayers.label = &"Alive: ";
     thread updateNumLivingPlayers();
 
-    //using map zh_elusive
+    // Using map zh_elusive
     originPlane = (-1520, 12000, 3500);
     anglesPlane = (0, -90, 0);
     level.plane = spawn("script_model", originPlane);
@@ -734,11 +734,11 @@ startBattle()
         level.plane.angles[1],
         level.plane.angles[2]);
 
-    moveDestination = -30000;
-    moveDelay = 22;
+    moveDistance = -25000;
+    moveDuration = 22;
     level.planePov = spawn("script_origin", originPlanePov);
 
-    //MAKE PLAYERS TO FOLLOW THE PLANE
+    //MAKE PLAYERS FOLLOW THE PLANE
     players = getEntArray("player", "classname");
     for (i = 0; i < players.size; i++)
     {
@@ -761,40 +761,21 @@ startBattle()
         player thread checkPlayerInZone();
         player thread checkPlayerJumped();
     }
-    level.plane moveY(moveDestination, moveDelay);
+    level.plane moveY(moveDistance, moveDuration);
     level.plane playLoopSound("in_plane");
-    level.planePov moveY(moveDestination, moveDelay);
+    level.planePov moveY(moveDistance, moveDuration);
 
-    wait moveDelay;
+    wait moveDuration - 2; // Check if everyone jumped 2 seconds before removing the plane.
     for (i = 0; i < players.size; i++)
     {
         player = players[i];
-        if (isAlive(player) && !player.jumped)
-        {
+        if(isAlive(player) && !player.jumped)
             player.forceJump = true;
-        }
     }
-    //wait 3; // TODO: Figure out why this delay is here.
-    //everyoneJumped = true;
-    /*for(i = 0; i < players.size; i++)
-    {
-        player = players[i];
-        if(isAlive(player) && !player.jumped) // TODO: Figure out why this.
-        {
-            everyoneJumped = false;
-            break;
-        }
-    }*/
 
-
-
-
-    //if(everyoneJumped)
-    //{
-        level.plane stopLoopSound();
-        level.plane delete();
-        level.planePov delete();
-    //}
+    level.plane stopLoopSound();
+    level.plane delete();
+    level.planePov delete();
 }
 
 //ZONE FUNCTIONS
@@ -825,20 +806,19 @@ manageZoneLifecycle()
 }
 setupZone(zoneModeIndex)
 {
-    printLn("### setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
+    printLn("###### [BR] setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
 
     if (!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) //STATIC ZONE
     {
         if (level.zone.active)
         {
-            printLn("### ERROR: Static zone already active");
+            printLn("### ERROR: Static zone already active"); // TODO: Remove this if never happens.
             return;
         }
-
+        
         level.zone.indexMode = zoneModeIndex;
-        level.zone.life = 10000;
         level.zone.currentSize = (int)level.zone.modes[zoneModeIndex]["startSize"];
-        level.zone thread playZone(level.zone.modes[zoneModeIndex]["fxId"], true);
+        level thread playZone(level.zone.modes[zoneModeIndex]["fxId"], true);
 
         if (zoneModeIndex != 0) //START ZONE NO COUNTDOWN
         {
@@ -861,7 +841,7 @@ setupZone(zoneModeIndex)
         level.zone.active = false;
         
         level notify("zone_static_stop");
-        printLn("######### zoneStatic flip angle");
+        printLn("###### [BR] zoneStatic flip angle");
         /*
         Before reading this comment, see first explanation in playZone()
         Thought about making the zone go down the map to hide it, but moveTo()/moveZ() didn't want to make the 
@@ -896,7 +876,7 @@ setupZone(zoneModeIndex)
 }
 playZone(fx, static)
 {
-    printLn("### playZone");
+    printLn("###### [BR] playZone");
 
     if (static)
     {
@@ -917,26 +897,26 @@ playZone(fx, static)
         {
             level endon("zone_static_stop");
 
-            level.zoneStatic.angles = level.zone.angles; // Reset angle to initial value.
-            printLn("######### playFXOnTag zoneStatic");
+            level.zoneStatic.angles = level.zone.angles; // Reset angle to initial value (unhide).
+            printLn("###### [BR] playFXOnTag zoneStatic");
             playFXOnTag(fx, level.zoneStatic, level.zone.modelTag);
-            wait 10;
+            wait 10; // Using same life value in efx files for all static zones.
         }
     }
     else
     {
         playFXOnTag(fx, self, self.modelTag);
         
-        if (self.indexMode != level.zone.modes.size - 1) //FINAL FULL SHRINKS DOESNT PLAY NEXT
+        if (self.indexMode != self.modes.size - 1) //FINAL FULL SHRINKS DOESNT PLAY NEXT
         {
             wait (self.life / 1000);
             //PLAY NEXT STATIC ZONE
-            level.zone.active = false;
-            level thread setupZone(self.nextZoneIndex);
+            self.active = false;
+            self thread setupZone(self.nextZoneIndex);
         }
         else
         {
-            printLn("### playZone FINAL");
+            printLn("###### [BR] playZone FINAL");
 
             wait (self.life / 1000);
             //Destroy HUD
@@ -1238,7 +1218,7 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
         leftDirection = anglesToLeft(angles);
         rightDirection = anglesToRight(angles);
 
-        //printLn("### angles[0] = " + angles[0]);
+        //printLn("###### [BR] angles[0] = " + angles[0]);
         isLookingUp = false;
         isLookingDown = false;
         if(angles[0] < -30)
@@ -1465,6 +1445,7 @@ updateNumLivingPlayers()
         wait .05;
     }
 }
+
 checkVictoryRoyale()
 {
     if (!level.battleStarted || level.battleOver)
@@ -1503,6 +1484,7 @@ checkVictoryRoyale()
         level.winnerEntityNumber = winner getEntityNumber();
         level.winnerName = winner.name;
 
+        // Slow motion effect
         setCvar("timescale", "0.5");
         wait 0.25;
         for(x = .5; x < 1; x+= .05)
@@ -1511,6 +1493,7 @@ checkVictoryRoyale()
             setCvar("timescale", x);
         }
         setCvar("timescale", "1");
+
         wait 4;
         endMap();
     }
@@ -1535,6 +1518,7 @@ checkVictoryRoyale()
 
     level.checkingVictoryRoyale = false;
 }
+
 endMap()
 {
     if(!level.noWinner)
@@ -1583,6 +1567,7 @@ showDamageFeedback()
     if(isDefined(self.hitBlip))
         self.hitBlip destroy();
 }
+
 //KILLCAM FUNCTIONS
 setupFinalKillcam()
 {
@@ -1609,7 +1594,7 @@ setupFinalKillcam()
     
     return;
 }
-killcam(attacker, delay, finalKillcam)
+killcam(attacker, delay, finalKillcam) // TODO: cleanup
 {
     if(!finalKillcam)
         self endon("spawned");
@@ -1713,20 +1698,16 @@ killcam(attacker, delay, finalKillcam)
 waitKillcamTime()
 {
     self endon("end_killcam");
-    
     wait (self.archivetime - 0.05);
     self notify("end_killcam");
 }
 waitSkipKillcamButton()
 {
     self endon("end_killcam");
-    
     while(self useButtonPressed())
         wait .05;
-
     while(!(self useButtonPressed()))
         wait .05;
-    
     self notify("end_killcam");	
 }
 removeKillcamElements()
@@ -1758,59 +1739,42 @@ quickcommands(response)
         case "1":
             soundalias = "american_follow_me";
             saytext = &"QUICKMESSAGE_FOLLOW_ME";
-            //saytext = "Follow Me!";
             break;
-
         case "2":
             soundalias = "american_move_in";
             saytext = &"QUICKMESSAGE_MOVE_IN";
-            //saytext = "Move in!";
             break;
-
         case "3":
             soundalias = "american_fall_back";
             saytext = &"QUICKMESSAGE_FALL_BACK";
-            //saytext = "Fall back!";
             break;
-
         case "4":
             soundalias = "american_suppressing_fire";
             saytext = &"QUICKMESSAGE_SUPPRESSING_FIRE";
-            //saytext = "Suppressing fire!";
             break;
-
         case "5":
             soundalias = "american_attack_left_flank";
             saytext = &"QUICKMESSAGE_SQUAD_ATTACK_LEFT_FLANK";
-            //saytext = "Squad, attack left flank!";
             break;
-
         case "6":
             soundalias = "american_attack_right_flank";
             saytext = &"QUICKMESSAGE_SQUAD_ATTACK_RIGHT_FLANK";
-            //saytext = "Squad, attack right flank!";
             break;
-
         case "7":
             soundalias = "american_hold_position";
             saytext = &"QUICKMESSAGE_SQUAD_HOLD_THIS_POSITION";
-            //saytext = "Squad, hold this position!";
             break;
-
         case "8":
             temp = randomInt(2);
-
             if(temp)
             {
                 soundalias = "american_regroup";
                 saytext = &"QUICKMESSAGE_SQUAD_REGROUP";
-                //saytext = "Squad, regroup!";
             }
             else
             {
                 soundalias = "american_stick_together";
                 saytext = &"QUICKMESSAGE_SQUAD_STICK_TOGETHER";
-                //saytext = "Squad, stick together!";
             }
             break;
         }
@@ -1822,59 +1786,42 @@ quickcommands(response)
         case "1":
             soundalias = "british_follow_me";
             saytext = &"QUICKMESSAGE_FOLLOW_ME";
-            //saytext = "Follow Me!";
             break;
-
         case "2":
             soundalias = "british_move_in";
             saytext = &"QUICKMESSAGE_MOVE_IN";
-            //saytext = "Move in!";
             break;
-
         case "3":
             soundalias = "british_fall_back";
             saytext = &"QUICKMESSAGE_FALL_BACK";
-            //saytext = "Fall back!";
             break;
-
         case "4":
             soundalias = "british_suppressing_fire";
             saytext = &"QUICKMESSAGE_SUPPRESSING_FIRE";
-            //saytext = "Suppressing fire!";
             break;
-
         case "5":
             soundalias = "british_attack_left_flank";
             saytext = &"QUICKMESSAGE_SQUAD_ATTACK_LEFT_FLANK";
-            //saytext = "Squad, attack left flank!";
             break;
-
         case "6":
             soundalias = "british_attack_right_flank";
             saytext = &"QUICKMESSAGE_SQUAD_ATTACK_RIGHT_FLANK";
-            //saytext = "Squad, attack right flank!";
             break;
-
         case "7":
             soundalias = "british_hold_position";
             saytext = &"QUICKMESSAGE_SQUAD_HOLD_THIS_POSITION";
-            //saytext = "Squad, hold this position!";
             break;
-
         case "8":
             temp = randomInt(2);
-
             if(temp)
             {
                 soundalias = "british_regroup";
                 saytext = &"QUICKMESSAGE_SQUAD_REGROUP";
-                //saytext = "Squad, regroup!";
             }
             else
             {
                 soundalias = "british_stick_together";
                 saytext = &"QUICKMESSAGE_SQUAD_STICK_TOGETHER";
-                //saytext = "Squad, stick together!";
             }
             break;
         }
@@ -1886,49 +1833,34 @@ quickcommands(response)
         case "1":
             soundalias = "russian_follow_me";
             saytext = &"QUICKMESSAGE_FOLLOW_ME";
-            //saytext = "Follow Me!";
             break;
-
         case "2":
             soundalias = "russian_move_in";
             saytext = &"QUICKMESSAGE_MOVE_IN";
-            //saytext = "Move in!";
             break;
-
         case "3":
             soundalias = "russian_fall_back";
             saytext = &"QUICKMESSAGE_FALL_BACK";
-            //saytext = "Fall back!";
             break;
-
         case "4":
             soundalias = "russian_suppressing_fire";
             saytext = &"QUICKMESSAGE_SUPPRESSING_FIRE";
-            //saytext = "Suppressing fire!";
             break;
-
         case "5":
             soundalias = "russian_attack_left_flank";
             saytext = &"QUICKMESSAGE_SQUAD_ATTACK_LEFT_FLANK";
-            //saytext = "Squad, attack left flank!";
             break;
-
         case "6":
             soundalias = "russian_attack_right_flank";
             saytext = &"QUICKMESSAGE_SQUAD_ATTACK_RIGHT_FLANK";
-            //saytext = "Squad, attack right flank!";
             break;
-
         case "7":
             soundalias = "russian_hold_position";
             saytext = &"QUICKMESSAGE_SQUAD_HOLD_THIS_POSITION";
-            //saytext = "Squad, hold this position!";
             break;
-
         case "8":
             soundalias = "russian_regroup";
             saytext = &"QUICKMESSAGE_SQUAD_REGROUP";
-            //saytext = "Squad, regroup!";
             break;
         }
         break;
@@ -1939,49 +1871,34 @@ quickcommands(response)
         case "1":
             soundalias = "german_follow_me";
             saytext = &"QUICKMESSAGE_FOLLOW_ME";
-            //saytext = "Follow Me!";
             break;
-
         case "2":
             soundalias = "german_move_in";
             saytext = &"QUICKMESSAGE_MOVE_IN";
-            //saytext = "Move in!";
             break;
-
         case "3":
             soundalias = "german_fall_back";
             saytext = &"QUICKMESSAGE_FALL_BACK";
-            //saytext = "Fall back!";
             break;
-
         case "4":
             soundalias = "german_suppressing_fire";
             saytext = &"QUICKMESSAGE_SUPPRESSING_FIRE";
-            //saytext = "Suppressing fire!";
             break;
-
         case "5":
             soundalias = "german_attack_left_flank";
             saytext = &"QUICKMESSAGE_SQUAD_ATTACK_LEFT_FLANK";
-            //saytext = "Squad, attack left flank!";
             break;
-
         case "6":
             soundalias = "german_attack_right_flank";
             saytext = &"QUICKMESSAGE_SQUAD_ATTACK_RIGHT_FLANK";
-            //saytext = "Squad, attack right flank!";
             break;
-
         case "7":
             soundalias = "german_hold_position";
             saytext = &"QUICKMESSAGE_SQUAD_HOLD_THIS_POSITION";
-            //saytext = "Squad, hold this position!";
             break;
-
         case "8":
             soundalias = "german_regroup";
             saytext = &"QUICKMESSAGE_SQUAD_REGROUP";
-            //saytext = "Squad, regroup!";
             break;
         }
         break;
@@ -2007,49 +1924,34 @@ quickstatements(response)
         case "1":
             soundalias = "american_enemy_spotted";
             saytext = &"QUICKMESSAGE_ENEMY_SPOTTED";
-            //saytext = "Enemy spotted!";
             break;
-
         case "2":
             soundalias = "american_enemy_down";
             saytext = &"QUICKMESSAGE_ENEMY_DOWN";
-            //saytext = "Enemy down!";
             break;
-
         case "3":
             soundalias = "american_in_position";
             saytext = &"QUICKMESSAGE_IM_IN_POSITION";
-            //saytext = "I'm in position.";
             break;
-
         case "4":
             soundalias = "american_area_secure";
             saytext = &"QUICKMESSAGE_AREA_SECURE";
-            //saytext = "Area secure!";
             break;
-
         case "5":
             soundalias = "american_grenade";
             saytext = &"QUICKMESSAGE_GRENADE";
-            //saytext = "Grenade!";
             break;
-
         case "6":
             soundalias = "american_sniper";
             saytext = &"QUICKMESSAGE_SNIPER";
-            //saytext = "Sniper!";
             break;
-
         case "7":
             soundalias = "american_need_reinforcements";
             saytext = &"QUICKMESSAGE_NEED_REINFORCEMENTS";
-            //saytext = "Need reinforcements!";
             break;
-
         case "8":
             soundalias = "american_hold_fire";
             saytext = &"QUICKMESSAGE_HOLD_YOUR_FIRE";
-            //saytext = "Hold your fire!";
             break;
         }
         break;
@@ -2060,49 +1962,34 @@ quickstatements(response)
         case "1":
             soundalias = "british_enemy_spotted";
             saytext = &"QUICKMESSAGE_ENEMY_SPOTTED";
-            //saytext = "Enemy spotted!";
             break;
-
         case "2":
             soundalias = "british_enemy_down";
             saytext = &"QUICKMESSAGE_ENEMY_DOWN";
-            //saytext = "Enemy down!";
             break;
-
         case "3":
             soundalias = "british_in_position";
             saytext = &"QUICKMESSAGE_IM_IN_POSITION";
-            //saytext = "I'm in position.";
             break;
-
         case "4":
             soundalias = "british_area_secure";
             saytext = &"QUICKMESSAGE_AREA_SECURE";
-            //saytext = "Area secure!";
             break;
-
         case "5":
             soundalias = "british_grenade";
             saytext = &"QUICKMESSAGE_GRENADE";
-            //saytext = "Grenade!";
             break;
-
         case "6":
             soundalias = "british_sniper";
             saytext = &"QUICKMESSAGE_SNIPER";
-            //saytext = "Sniper!";
             break;
-
         case "7":
             soundalias = "british_need_reinforcements";
             saytext = &"QUICKMESSAGE_NEED_REINFORCEMENTS";
-            //saytext = "Need reinforcements!";
             break;
-
         case "8":
             soundalias = "british_hold_fire";
             saytext = &"QUICKMESSAGE_HOLD_YOUR_FIRE";
-            //saytext = "Hold your fire!";
             break;
         }
         break;
@@ -2113,49 +2000,34 @@ quickstatements(response)
         case "1":
             soundalias = "russian_enemy_spotted";
             saytext = &"QUICKMESSAGE_ENEMY_SPOTTED";
-            //saytext = "Enemy spotted!";
             break;
-
         case "2":
             soundalias = "russian_enemy_down";
             saytext = &"QUICKMESSAGE_ENEMY_DOWN";
-            //saytext = "Enemy down!";
             break;
-
         case "3":
             soundalias = "russian_in_position";
             saytext = &"QUICKMESSAGE_IM_IN_POSITION";
-            //saytext = "I'm in position.";
             break;
-
         case "4":
             soundalias = "russian_area_secure";
             saytext = &"QUICKMESSAGE_AREA_SECURE";
-            //saytext = "Area secure!";
             break;
-
         case "5":
             soundalias = "russian_grenade";
             saytext = &"QUICKMESSAGE_GRENADE";
-            //saytext = "Grenade!";
             break;
-
         case "6":
             soundalias = "russian_sniper";
             saytext = &"QUICKMESSAGE_SNIPER";
-            //saytext = "Sniper!";
             break;
-
         case "7":
             soundalias = "russian_need_reinforcements";
             saytext = &"QUICKMESSAGE_NEED_REINFORCEMENTS";
-            //saytext = "Need reinforcements!";
             break;
-
         case "8":
             soundalias = "russian_hold_fire";
             saytext = &"QUICKMESSAGE_HOLD_YOUR_FIRE";
-            //saytext = "Hold your fire!";
             break;
         }
         break;
@@ -2166,54 +2038,37 @@ quickstatements(response)
         case "1":
             soundalias = "german_enemy_spotted";
             saytext = &"QUICKMESSAGE_ENEMY_SPOTTED";
-            //saytext = "Enemy spotted!";
             break;
-
         case "2":
             soundalias = "german_enemy_down";
             saytext = &"QUICKMESSAGE_ENEMY_DOWN";
-            //saytext = "Enemy down!";
             break;
-
         case "3":
             soundalias = "german_in_position";
             saytext = &"QUICKMESSAGE_IM_IN_POSITION";
-            //saytext = "I'm in position.";
             break;
-
         case "4":
             soundalias = "german_area_secure";
             saytext = &"QUICKMESSAGE_AREA_SECURE";
-            //saytext = "Area secure!";
             break;
-
         case "5":
             soundalias = "german_grenade";
             saytext = &"QUICKMESSAGE_GRENADE";
-            //saytext = "Grenade!";
             break;
-
         case "6":
             soundalias = "german_sniper";
             saytext = &"QUICKMESSAGE_SNIPER";
-            //saytext = "Sniper!";
             break;
-
         case "7":
             soundalias = "german_need_reinforcements";
             saytext = &"QUICKMESSAGE_NEED_REINFORCEMENTS";
-            //saytext = "Need reinforcements!";
             break;
-
         case "8":
             soundalias = "german_hold_fire";
             saytext = &"QUICKMESSAGE_HOLD_YOUR_FIRE";
-            //saytext = "Hold your fire!";
             break;
         }
         break;
-    
-    
     }
 
     self doQuickMessage(soundalias, saytext);
@@ -2236,59 +2091,43 @@ quickresponses(response)
         case "1":
             soundalias = "american_yes_sir";
             saytext = &"QUICKMESSAGE_YES_SIR";
-            //saytext = "Yes Sir!";
             break;
-
         case "2":
             soundalias = "american_no_sir";
             saytext = &"QUICKMESSAGE_NO_SIR";
-            //saytext = "No Sir!";
             break;
-
         case "3":
             soundalias = "american_on_my_way";
             saytext = &"QUICKMESSAGE_ON_MY_WAY";
-            //saytext = "On my way.";
             break;
-
         case "4":
             soundalias = "american_sorry";
             saytext = &"QUICKMESSAGE_SORRY";
-            //saytext = "Sorry.";
             break;
-
         case "5":
             soundalias = "american_great_shot";
             saytext = &"QUICKMESSAGE_GREAT_SHOT";
-            //saytext = "Great shot!";
             break;
-
         case "6":
             soundalias = "american_took_long_enough";
             saytext = &"QUICKMESSAGE_TOOK_LONG_ENOUGH";
-            //saytext = "Took long enough!";
             break;
-
         case "7":
             temp = randomInt(3);
-
             if(temp == 0)
             {
                 soundalias = "american_youre_crazy";
                 saytext = &"QUICKMESSAGE_YOURE_CRAZY";
-                //saytext = "You're crazy!";
             }
             else if(temp == 1)
             {
                 soundalias = "american_you_outta_your_mind";
                 saytext = &"QUICKMESSAGE_YOU_OUTTA_YOUR_MIND";
-                //saytext = "You outta your mind?";
             }
             else
             {
                 soundalias = "american_youre_nuts";
                 saytext = &"QUICKMESSAGE_YOURE_NUTS";
-                //saytext = "You're nuts!";
             }
             break;
         }
@@ -2300,43 +2139,30 @@ quickresponses(response)
         case "1":
             soundalias = "british_yes_sir";
             saytext = &"QUICKMESSAGE_YES_SIR";
-            //saytext = "Yes Sir!";
             break;
-
         case "2":
             soundalias = "british_no_sir";
             saytext = &"QUICKMESSAGE_NO_SIR";
-            //saytext = "No Sir!";
             break;
-
         case "3":
             soundalias = "british_on_my_way";
             saytext = &"QUICKMESSAGE_ON_MY_WAY";
-            //saytext = "On my way.";
             break;
-
         case "4":
             soundalias = "british_sorry";
             saytext = &"QUICKMESSAGE_SORRY";
-            //saytext = "Sorry.";
             break;
-
         case "5":
             soundalias = "british_great_shot";
             saytext = &"QUICKMESSAGE_GREAT_SHOT";
-            //saytext = "Great shot!";
             break;
-
         case "6":
             soundalias = "british_took_long_enough";
             saytext = &"QUICKMESSAGE_TOOK_LONG_ENOUGH";
-            //saytext = "Took long enough!";
             break;
-
         case "7":
             soundalias = "british_youre_crazy";
             saytext = &"QUICKMESSAGE_YOURE_CRAZY";
-            //saytext = "You're crazy!";
             break;
         }
         break;
@@ -2347,89 +2173,64 @@ quickresponses(response)
         case "1":
             soundalias = "russian_yes_sir";
             saytext = &"QUICKMESSAGE_YES_SIR";
-            //saytext = "Yes Sir!";
             break;
-
         case "2":
             soundalias = "russian_no_sir";
             saytext = &"QUICKMESSAGE_NO_SIR";
-            //saytext = "No Sir!";
             break;
-
         case "3":
             soundalias = "russian_on_my_way";
             saytext = &"QUICKMESSAGE_ON_MY_WAY";
-            //saytext = "On my way.";
             break;
-
         case "4":
             soundalias = "russian_sorry";
             saytext = &"QUICKMESSAGE_SORRY";
-            //saytext = "Sorry.";
             break;
-
         case "5":
             soundalias = "russian_great_shot";
             saytext = &"QUICKMESSAGE_GREAT_SHOT";
-            //saytext = "Great shot!";
             break;
-
         case "6":
             soundalias = "russian_took_long_enough";
             saytext = &"QUICKMESSAGE_TOOK_LONG_ENOUGH";
-            //saytext = "Took long enough!";
             break;
-
         case "7":
             soundalias = "russian_youre_crazy";
             saytext = &"QUICKMESSAGE_YOURE_CRAZY";
-            //saytext = "You're crazy!";
             break;
         }
         break;
+    
     case "german":
         switch(response)		
         {
         case "1":
             soundalias = "german_yes_sir";
             saytext = &"QUICKMESSAGE_YES_SIR";
-            //saytext = "Yes Sir!";
             break;
-
         case "2":
             soundalias = "german_no_sir";
             saytext = &"QUICKMESSAGE_NO_SIR";
-            //saytext = "No Sir!";
             break;
-
         case "3":
             soundalias = "german_on_my_way";
             saytext = &"QUICKMESSAGE_ON_MY_WAY";
-            //saytext = "On my way.";
             break;
-
         case "4":
             soundalias = "german_sorry";
             saytext = &"QUICKMESSAGE_SORRY";
-            //saytext = "Sorry.";
             break;
-
         case "5":
             soundalias = "german_great_shot";
             saytext = &"QUICKMESSAGE_GREAT_SHOT";
-            //saytext = "Great shot!";
             break;
-
         case "6":
             soundalias = "german_took_long_enough";
             saytext = &"QUICKMESSAGE_TOOK_YOU_LONG_ENOUGH";
-            //saytext = "Took you long enough!";				
             break;
-
         case "7":
             soundalias = "german_are_you_crazy";
             saytext = &"QUICKMESSAGE_ARE_YOU_CRAZY";
-            //saytext = "Are you crazy?";
             break;
         }
         break;
