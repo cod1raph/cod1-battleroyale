@@ -1,1 +1,1 @@
-bx_parachute: Prawy
+bx_parachute: https://github.com/BraXi/CoD1_Zombies_1.2_Mod
