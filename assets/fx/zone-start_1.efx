@@ -4,7 +4,7 @@ Cylinder
 
 	flags				useAlpha relative
 
-	life				6000
+	life				10000
 
 	alpha
 	{
@@ -13,15 +13,15 @@ Cylinder
 
 	size
 	{
-		start			19000
-		end				15500
+		start			15000
+		end				12000
 		flags			linear
 	}
 
 	size2
 	{
-		start			19000
-		end				15500
+		start			15000
+		end				12000
 		flags			linear
 	}
 

@@ -67,13 +67,13 @@ main()
 
     level.zone.modes[0]["id"] = "start";
     level.zone.modes[0]["fxId"] = loadfx("fx/zone-start.efx");
-    level.zone.modes[0]["startSize"] = "19000";
+    level.zone.modes[0]["startSize"] = "15000";
 
     level.zone.modes[1]["id"] = "start_1";
     level.zone.modes[1]["fxId"] = loadfx("fx/zone-start_1.efx");
-    level.zone.modes[1]["life"] = "6000";
+    level.zone.modes[1]["life"] = "10000";
     level.zone.modes[1]["startSize"] = level.zone.modes[1-1]["startSize"];
-    level.zone.modes[1]["endSize"] = "15500";
+    level.zone.modes[1]["endSize"] = "12000";
 
     level.zone.modes[2]["id"] = "1";
     level.zone.modes[2]["fxId"] = loadfx("fx/zone1.efx");
@@ -81,9 +81,9 @@ main()
 
     level.zone.modes[3]["id"] = "1_2";
     level.zone.modes[3]["fxId"] = loadfx("fx/zone1_2.efx");
-    level.zone.modes[3]["life"] = "6000";
+    level.zone.modes[3]["life"] = "10000";
     level.zone.modes[3]["startSize"] = level.zone.modes[3-1]["startSize"];
-    level.zone.modes[3]["endSize"] = "11000";
+    level.zone.modes[3]["endSize"] = "9000";
 
     level.zone.modes[4]["id"] = "2";
     level.zone.modes[4]["fxId"] = loadfx("fx/zone2.efx");
@@ -91,9 +91,9 @@ main()
 
     level.zone.modes[5]["id"] = "2_3";
     level.zone.modes[5]["fxId"] = loadfx("fx/zone2_3.efx");
-    level.zone.modes[5]["life"] = "6000";
+    level.zone.modes[5]["life"] = "10000";
     level.zone.modes[5]["startSize"] = level.zone.modes[5-1]["startSize"];
-    level.zone.modes[5]["endSize"] = "7200";
+    level.zone.modes[5]["endSize"] = "6500";
 
     level.zone.modes[6]["id"] = "3";
     level.zone.modes[6]["fxId"] = loadfx("fx/zone3.efx");
@@ -101,9 +101,9 @@ main()
 
     level.zone.modes[7]["id"] = "3_4";
     level.zone.modes[7]["fxId"] = loadfx("fx/zone3_4.efx");
-    level.zone.modes[7]["life"] = "6000";
+    level.zone.modes[7]["life"] = "10000";
     level.zone.modes[7]["startSize"] = level.zone.modes[7-1]["startSize"];
-    level.zone.modes[7]["endSize"] = "3700";
+    level.zone.modes[7]["endSize"] = "4250";
 
     level.zone.modes[8]["id"] = "4";
     level.zone.modes[8]["fxId"] = loadfx("fx/zone4.efx");
@@ -111,9 +111,9 @@ main()
 
     level.zone.modes[9]["id"] = "4_5";
     level.zone.modes[9]["fxId"] = loadfx("fx/zone4_5.efx");
-    level.zone.modes[9]["life"] = "6000";
+    level.zone.modes[9]["life"] = "10000";
     level.zone.modes[9]["startSize"] = level.zone.modes[9-1]["startSize"];
-    level.zone.modes[9]["endSize"] = "1320";
+    level.zone.modes[9]["endSize"] = "2000";
 
     level.zone.modes[10]["id"] = "5";
     level.zone.modes[10]["fxId"] = loadfx("fx/zone5.efx");
@@ -121,7 +121,7 @@ main()
 
     level.zone.modes[11]["id"] = "5_end";
     level.zone.modes[11]["fxId"] = loadfx("fx/zone5_end.efx");
-    level.zone.modes[11]["life"] = "6000";
+    level.zone.modes[11]["life"] = "10000";
     level.zone.modes[11]["startSize"] = level.zone.modes[11-1]["startSize"];
     level.zone.modes[11]["endSize"] = "0";
 
