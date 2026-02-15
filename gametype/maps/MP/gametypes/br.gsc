@@ -1107,7 +1107,7 @@ checkReleasedUseButton()
         wait .05;
     self.blockParachuteCheck = false;
 }
-checkPlayerDive() // TODO: Prevent crashing (dying) when landing
+checkPlayerDive() // TODO: Prevent crashing (dying) when landing: auto open parachute + reduce velocity.
 {
     self endon("death");
     self endon("spawned_spectator");
@@ -1115,7 +1115,12 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
 
     self thread checkLanded();
 
-    self.hud_jump_parachute setText(&"Press ^1[{+gostand}] ^7to open/close parachute");
+    text_hud_jump_parachute_part1 = "Press ^1[{+gostand}] ^7to ";
+    text_hud_jump_parachute_part2 = "open";
+    text_hud_jump_parachute_part3 = " parachute";
+    text_hud_jump_parachute_part_concatenated = text_hud_jump_parachute_part1 + text_hud_jump_parachute_part2 + text_hud_jump_parachute_part3;
+    text_hud_jump_parachute_part_concatenated_localized = makeLocalizedString(text_hud_jump_parachute_part_concatenated);
+    self.hud_jump_parachute setText(text_hud_jump_parachute_part_concatenated_localized);
 
     self.parachuteEnabled = false;
 
@@ -1200,6 +1205,8 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                 self.hud_parachuteStateIndicator setText(level.text_parachuteDeployed);
                 self.parachuteEnabled = true;
                 self attach(level.model_parachute, "tag_belt_back");
+
+                text_hud_jump_parachute_part2 = "close";
             }
             else
             {
@@ -1208,7 +1215,14 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing
                 self.hud_parachuteStateIndicator setText(level.text_parachuteNotDeployed);
                 self.parachuteEnabled = false;
                 self detach(level.model_parachute, "tag_belt_back");
+
+                text_hud_jump_parachute_part2 = "open";
             }
+
+            //TODO: Check if should update existing localized string instead.
+            text_hud_jump_parachute_part_concatenated = text_hud_jump_parachute_part1 + text_hud_jump_parachute_part2 + text_hud_jump_parachute_part3;
+            text_hud_jump_parachute_part_concatenated_localized = makeLocalizedString(text_hud_jump_parachute_part_concatenated);
+            self.hud_jump_parachute setText(text_hud_jump_parachute_part_concatenated_localized);
         }
         
         velocity = self getVelocity();
