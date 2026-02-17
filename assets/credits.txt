@@ -1,1 +1,2 @@
 bx_parachute: https://github.com/BraXi/CoD1_Zombies_1.2_Mod
+parachute hands model: https://gitlab.com/kazam0180/cod1-battleroyale

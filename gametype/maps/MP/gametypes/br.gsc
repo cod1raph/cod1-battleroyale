@@ -45,9 +45,12 @@ main()
     level.killcamDuration = 5;
     
     //MODEL PATHS
-    level.model_zone = "xmodel/playerhead_default"; //TODO: create an invisible model instead
+    level.model_zone = "xmodel/playerhead_default"; //TODO: For cleanliness/professionalism, use some invisible model instead.
     level.model_plane = "xmodel/c47";
     level.model_parachute = "xmodel/bx_parachute";
+
+    // TODO: Check if can show hands/parachute handles without using a weapon file.
+    level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to show hands to indicate parachute is deployed.
 
     level.camouflages = [];
     level.camouflages[0] = "american";
@@ -202,6 +205,8 @@ Callback_StartGameType()
     precacheItem("rgd-33russianfrag_mp");
 
     precacheItem("item_health");
+
+    precacheItem(level.parachute_deployed_hands);
 
     maps\mp\gametypes\_teams::initGlobalCvars();
     maps\mp\gametypes\_teams::restrictPlacedWeapons();
@@ -1107,11 +1112,14 @@ checkReleasedUseButton()
         wait .05;
     self.blockParachuteCheck = false;
 }
-checkPlayerDive() // TODO: Prevent crashing (dying) when landing: auto open parachute + reduce velocity.
+checkPlayerDive() //TODO: Prevent crashing (dying) when landing: reduce/adapt velocity when parachute is deployed.
 {
     self endon("death");
     self endon("spawned_spectator");
     self endon("landed");
+
+    self.parachuteEnabled = false;
+    self.parachuteDeploymentForced = false;
 
     self thread checkLanded();
 
@@ -1122,16 +1130,14 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing: auto open para
     text_hud_jump_parachute_part_concatenated_localized = makeLocalizedString(text_hud_jump_parachute_part_concatenated);
     self.hud_jump_parachute setText(text_hud_jump_parachute_part_concatenated_localized);
 
-    self.parachuteEnabled = false;
-
-    self.hud_parachuteStateIndicator = newClientHudElem(self); //TODO: show arms/hands instead
+    /*self.hud_parachuteStateIndicator = newClientHudElem(self); //TODO: show arms/hands instead
     self.hud_parachuteStateIndicator.alignX = "center";
     self.hud_parachuteStateIndicator.alignY = "middle";
     self.hud_parachuteStateIndicator.x = 320;
     self.hud_parachuteStateIndicator.y = self.hud_jump_parachute.y + 25;
     self.hud_parachuteStateIndicator.color = level.color_red;
     self.hud_parachuteStateIndicator.fontScale = 1.3;
-    self.hud_parachuteStateIndicator setText(level.text_parachuteNotDeployed);
+    self.hud_parachuteStateIndicator setText(level.text_parachuteNotDeployed);*/
 
     self.blockParachuteCheck = false;
 
@@ -1196,13 +1202,37 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing: auto open para
             self thread checkReleasedUseButton();
             checkParachute = true;
         }
-        if (checkParachute)
+        
+        if (!self.parachuteEnabled && !self.parachuteDeploymentForced)
+        {
+            // Force parachute deployment before touching ground/roof.
+            trace = bulletTrace(self.origin, self.origin - (0, 0, 8192), false, undefined);
+            trace_position_distance = distance(self.origin, trace["position"]);
+            //printLn("###### [BR] trace_position_distance: " + trace_position_distance);
+            if (trace_position_distance < 1000)
+            {
+                self.parachuteDeploymentForced = true;
+
+                self giveWeapon(level.parachute_deployed_hands);
+                self switchToWeapon(level.parachute_deployed_hands);
+                self.parachuteEnabled = true;
+                self attach(level.model_parachute, "tag_belt_back");
+                
+                self.hud_jump_parachute destroy();
+            }
+        }
+
+        if (checkParachute && !self.parachuteDeploymentForced)
         {
             if (!self.parachuteEnabled)
             {
                 //OPENED
-                self.hud_parachuteStateIndicator.color = level.color_green;
-                self.hud_parachuteStateIndicator setText(level.text_parachuteDeployed);
+                /*self.hud_parachuteStateIndicator.color = level.color_green;
+                self.hud_parachuteStateIndicator setText(level.text_parachuteDeployed);*/
+
+                self giveWeapon(level.parachute_deployed_hands);
+                self switchToWeapon(level.parachute_deployed_hands);
+
                 self.parachuteEnabled = true;
                 self attach(level.model_parachute, "tag_belt_back");
 
@@ -1211,8 +1241,11 @@ checkPlayerDive() // TODO: Prevent crashing (dying) when landing: auto open para
             else
             {
                 //CLOSED
-                self.hud_parachuteStateIndicator.color = level.color_red;
-                self.hud_parachuteStateIndicator setText(level.text_parachuteNotDeployed);
+                /*self.hud_parachuteStateIndicator.color = level.color_red;
+                self.hud_parachuteStateIndicator setText(level.text_parachuteNotDeployed);*/
+                
+                self takeWeapon(self getCurrentWeapon());
+                
                 self.parachuteEnabled = false;
                 self detach(level.model_parachute, "tag_belt_back");
 
@@ -1411,8 +1444,9 @@ checkLanded()
         {
             self notify("landed");
 
-            self.hud_jump_parachute destroy();
-            self.hud_parachuteStateIndicator destroy();
+            if(isDefined(self.hud_jump_parachute))
+                self.hud_jump_parachute destroy();
+            //self.hud_parachuteStateIndicator destroy();
 
             //Check landed under map
             if (self.origin[2] < -600)
@@ -1424,6 +1458,7 @@ checkLanded()
             if (self.parachuteEnabled)
             {
                 self detach(level.model_parachute, "tag_belt_back");
+                self takeWeapon(self getCurrentWeapon());
                 self.parachuteEnabled = false;
             }
             
