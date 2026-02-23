@@ -1187,18 +1187,10 @@ checkPlayerDive() //TODO: Prevent crashing (dying) when landing: reduce/adapt ve
             self setClientCvar("cl_stance", "0");
 
         //DIRECTION KEYS CHECK
-        goingForward = false;
-        goingBackward = false;
-        goingLeft = false;
-        goingRight = false;
-        if(self forwardButtonPressed())
-            goingForward = true;
-        if(self backButtonPressed())
-            goingBackward = true;
-        if(self leftButtonPressed())
-            goingLeft = true;
-        if(self rightButtonPressed())
-            goingRight = true;
+        goingForward = (self forwardButtonPressed());
+        goingBackward = (self backButtonPressed());
+        goingLeft = (self leftButtonPressed());
+        goingRight = (self rightButtonPressed());
 
         if (goingLeft && goingRight)
         {
@@ -1284,7 +1276,11 @@ checkPlayerDive() //TODO: Prevent crashing (dying) when landing: reduce/adapt ve
         leftDirection = anglesToLeft(angles);
         rightDirection = anglesToRight(angles);
 
-        //printLn("###### [BR] angles[0] = " + angles[0]);
+        if (self.name == "test")
+        {
+            //printLn("###### [BR] angles[0] = " + angles[0]);
+        }
+        
         isLookingUp = false;
         isLookingDown = false;
         if(angles[0] < -30)
@@ -1297,6 +1293,24 @@ checkPlayerDive() //TODO: Prevent crashing (dying) when landing: reduce/adapt ve
         {
             if (goingForward)
             {
+                if (angles[0] > 25)
+                {
+                    trace = bulletTrace(self.origin, self.origin - (0, 0, 8192), false, undefined);
+                    trace_position_distance = distance(self.origin, trace["position"]);
+                    if (trace_position_distance < 1000)
+                    {
+                        printLn("###### [BR] Preventing too high velocity when looking down with parachute");
+                        //AS IDLE
+                        newVelocity_x = velocity[0];
+                        newVelocity_y = velocity[1];
+                        newVelocity_z = velocity[2];
+                        newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_idle);
+                        self setVelocity(newVelocity);
+                        wait .05;
+                        continue;
+                    }
+                }
+
                 if (isLookingUp) //Prevent acceleration from pushing upward
                 {
                     //AS IDLE
