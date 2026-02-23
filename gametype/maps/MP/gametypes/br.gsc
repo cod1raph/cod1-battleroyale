@@ -14,8 +14,8 @@ main()
     level.text_waitingPlayers = &"WAITING FOR PLAYERS";
     level.text_parachuteDeployed = &"PARACHUTE DEPLOYED";
     level.text_parachuteNotDeployed = &"PARACHUTE NOT DEPLOYED";
-    level.text_zoneIsShrinking = &"ZONE SHRINKING ";
-    level.text_zoneWillShrink = &"ZONE SHRINKS IN ";
+    level.text_zoneIsShrinking = &"Zone shrinking ";
+    level.text_zoneWillShrink = &"Zone shrinks in ";
 
     level.minPlayers = 10;
     if(getCvarInt("br_minPlayers"))
@@ -41,8 +41,6 @@ main()
     level.zoneDuration = 120;
     if(getCvarInt("br_zoneDuration"))
         level.zoneDuration = getCvarInt("br_zoneDuration");
-
-    level.killcamDuration = 5;
     
     //MODEL PATHS
     level.model_zone = "xmodel/playerhead_default"; //TODO: For cleanliness/professionalism, use some dedicated invisible model instead.
@@ -737,7 +735,7 @@ startBattle()
     level.hud_playersMin destroy();
 
     level.hud_numLivingPlayers = newHudElem();
-    level.hud_numLivingPlayers.x = 570;
+    level.hud_numLivingPlayers.x = 640 - 55;
     level.hud_numLivingPlayers.y = 80;
     level.hud_numLivingPlayers.label = &"Alive: ";
     thread updateNumLivingPlayers();
@@ -806,7 +804,7 @@ startBattle()
 manageZoneLifecycle()
 {
     level.hud_zoneShrinkAlert = newHudElem();
-    level.hud_zoneShrinkAlert.x = 450;
+    level.hud_zoneShrinkAlert.x = 640 - 140;
     level.hud_zoneShrinkAlert.y = 170;
     level.hud_zoneShrinkAlert.fontScale = 1.1;
 
@@ -834,12 +832,6 @@ setupZone(zoneModeIndex)
 
     if (!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) //STATIC ZONE
     {
-        if (level.zone.active)
-        {
-            printLn("### ERROR: Static zone already active"); // TODO: Remove this if never happens.
-            return;
-        }
-        
         level.zone.indexMode = zoneModeIndex;
         level.zone.currentSize = (int)level.zone.modes[zoneModeIndex]["startSize"];
         level thread playZone(level.zone.modes[zoneModeIndex]["fxId"], true);
@@ -1220,7 +1212,7 @@ checkPlayerDive()
             trace = bulletTrace(self.origin, self.origin - (0, 0, 8192), false, undefined);
             trace_position_distance = distance(self.origin, trace["position"]);
             //printLn("###### [BR] trace_position_distance: " + trace_position_distance);
-            if (trace_position_distance < 1000)
+            if (trace_position_distance < 1200)
             {
                 self.parachuteDeploymentForced = true;
 
@@ -1293,13 +1285,14 @@ checkPlayerDive()
         {
             if (goingForward)
             {
-                if (angles[0] > 25)
+                // Reduce risks of crashing when landing if looking too much below.
+                if (angles[0] > 20)
                 {
                     trace = bulletTrace(self.origin, self.origin - (0, 0, 8192), false, undefined);
                     trace_position_distance = distance(self.origin, trace["position"]);
-                    if (trace_position_distance < 1000)
+                    if (trace_position_distance < 1500)
                     {
-                        printLn("###### [BR] Preventing too high velocity when looking down with parachute");
+                        //printLn("###### [BR] Trying prevent land crash with parachute deployed");
                         //AS IDLE
                         newVelocity_x = velocity[0];
                         newVelocity_y = velocity[1];
@@ -1559,10 +1552,10 @@ checkVictoryRoyale(playerEntity)
         winner.hud_victoryRoyale.alignY = "middle";
         winner.hud_victoryRoyale.x = 320;
         winner.hud_victoryRoyale.y = 100;
-        winner.hud_victoryRoyale.color = level.color_blue;
+        winner.hud_victoryRoyale.color = (0.26, 1, 0.35);
         winner.hud_victoryRoyale.fontScale = 1.5;
         winner.hud_victoryRoyale.font = "bigfixed";
-        winner.hud_victoryRoyale setText(&"VICTORY ROYALE!");
+        winner.hud_victoryRoyale setText(&"YOU WIN!");
 
         level.winnerEntityNumber = winner getEntityNumber();
         level.winnerName = winner.name;
