@@ -1131,7 +1131,7 @@ checkReleasedUseButton()
         wait .05;
     self.blockParachuteCheck = false;
 }
-checkPlayerDive() //TODO: Prevent crashing (dying) when landing: reduce/adapt velocity when parachute is deployed.
+checkPlayerDive()
 {
     self endon("death");
     self endon("spawned_spectator");
