@@ -351,7 +351,7 @@ Callback_PlayerConnect()
 }
 Callback_PlayerDisconnect()
 {
-    printLn("###### [BR] Callback_PlayerDisconnect");
+    //printLn("###### [BR] Callback_PlayerDisconnect");
 
     iprintln(&"MPSCRIPT_DISCONNECTED", self);
     self notify("death");
@@ -443,12 +443,12 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
     if (attacker == level.zone || attacker == level.zoneStatic)
     {
-        printLn("###### [BR] Callback_PlayerKilled: attacker is zone");
+        //printLn("###### [BR] Callback_PlayerKilled: attacker is zone");
         level thread checkVictoryRoyale(self);
     }
     else if (sMeansOfDeath == "MOD_FALLING")
     {
-        printLn("###### [BR] Callback_PlayerKilled: MOD_FALLING");
+        //printLn("###### [BR] Callback_PlayerKilled: MOD_FALLING");
         level thread checkVictoryRoyale(self);
     }
     else
@@ -470,7 +470,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
             }
             else
             {
-                printLn("###### [BR] Callback_PlayerKilled doKillcam = true");
+                //printLn("###### [BR] Callback_PlayerKilled doKillcam = true");
                 doKillcam = true;
                 attacker.pers["score"]++;
                 attacker.score = attacker.pers["score"];
@@ -478,7 +478,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
         }
         else
         {
-            printLn("###### [BR] Callback_PlayerKilled !isPlayer(attacker)");
+            //printLn("###### [BR] Callback_PlayerKilled !isPlayer(attacker)");
         }
     }
 
@@ -505,7 +505,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
 spawnSpectator(origin, angles, died)
 {
-    printLn("###### [BR] spawnSpectator");
+    //printLn("###### [BR] spawnSpectator");
 
     self notify("spawned");
     self notify("spawned_spectator");
@@ -591,7 +591,7 @@ spawnPlayer(origin, angles)
 }
 spawnIntermission()
 {
-    printLn("###### [BR] spawnIntermission");
+    //printLn("###### [BR] spawnIntermission");
 
     self notify("spawned");
     self notify("end_respawn");
@@ -614,7 +614,7 @@ spawnIntermission()
 
 checkBattleReady()
 {
-    printLn("###### [BR] checkBattleReady");
+    //printLn("###### [BR] checkBattleReady");
 
     level endon("battle_start");
 
@@ -1688,7 +1688,7 @@ killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 
     if (!isPlayer(attackerEntity))
     {
-        printLn("###### [BR] killcam: !isPlayer(attackerEntity)");
+        //printLn("###### [BR] killcam: !isPlayer(attackerEntity)");
         attackerEntity = self;
     }
     
