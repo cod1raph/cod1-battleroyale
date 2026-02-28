@@ -740,8 +740,7 @@ startBattle()
     level.hud_numLivingPlayers.label = &"Alive: ";
     thread updateNumLivingPlayers();
 
-    // Using map zh_elusive
-    originPlane = (-1520, 12000, 3500);
+    originPlane = (-1520, 12000, 3500); // Using map zh_elusive
     anglesPlane = (0, -90, 0);
     level.plane = spawn("script_model", originPlane);
     level.plane setModel(level.model_plane);
@@ -760,12 +759,11 @@ startBattle()
     moveDuration = 22;
     level.planePov = spawn("script_origin", originPlanePov);
 
-    //MAKE PLAYERS FOLLOW THE PLANE
+    // Link players to the plane
     players = getEntArray("player", "classname");
     for (i = 0; i < players.size; i++)
     {
         player = players[i];
-
         if(!player.fights)
             continue;
 
@@ -778,16 +776,36 @@ startBattle()
             player.pers["weapon"] = "mosin_nagant_mp";
 
         player spawnPlayer(originPlanePov, anglesPlanePov);
-        player showToPlayer(player); // Player invisible while following plane.
+        player showToPlayer(player); // Player invisible while following plane
         player linkto(level.planePov);
-        player thread checkPlayerInZone();
-        player thread checkPlayerJumped();
     }
     level.plane moveY(moveDistance, moveDuration);
     level.plane playLoopSound("in_plane");
     level.planePov moveY(moveDistance, moveDuration);
+    
+    delayBeforeDoorOpens = 3;
+    hud_doorOpening = newHudElem();
+    hud_doorOpening.alignX = "center";
+    hud_doorOpening.alignY = "middle";
+    hud_doorOpening.x = 320;
+    hud_doorOpening.y = 20;
+    hud_doorOpening.fontScale = 1.1;
+    hud_doorOpening.label = (&"Door opens in ");
+    hud_doorOpening setTimer(delayBeforeDoorOpens);
+    wait delayBeforeDoorOpens; // Delay door opening
+    players = getEntArray("player", "classname");
+    for (i = 0; i < players.size; i++)
+    {
+        player = players[i];
+        if(!player.fights)
+            continue;
+        player thread checkPlayerInZone();
+        player thread checkPlayerJumped();
+    }
+    wait 1;
+    hud_doorOpening destroy();
 
-    wait moveDuration - 2; // Check if everyone jumped 2 seconds before removing the plane.
+    wait moveDuration - (delayBeforeDoorOpens - 1) - 4; // Check if everyone jumped few seconds before deleting the plane.
     for (i = 0; i < players.size; i++)
     {
         player = players[i];
@@ -857,7 +875,7 @@ setupZone(zoneModeIndex)
         level.zone.active = false;
         
         level notify("zone_static_stop");
-        printLn("###### [BR] zoneStatic flip angle");
+        //printLn("###### [BR] zoneStatic flip angle");
         /*
         Before reading this comment, see first explanation in playZone()
         Thought about making the zone go down the map to hide it, but moveTo()/moveZ() didn't want to make the 
@@ -892,7 +910,7 @@ setupZone(zoneModeIndex)
 }
 playZone(fx, static)
 {
-    printLn("###### [BR] playZone");
+    //printLn("###### [BR] playZone");
 
     if (static)
     {
@@ -914,7 +932,7 @@ playZone(fx, static)
             level endon("zone_static_stop");
 
             level.zoneStatic.angles = level.zone.angles; // Reset angle to initial value (unhide).
-            printLn("###### [BR] playFXOnTag zoneStatic");
+            //printLn("###### [BR] playFXOnTag zoneStatic");
             playFXOnTag(fx, level.zoneStatic, level.zone.modelTag);
             wait 10; // Using same life value in efx files for all static zones.
         }
@@ -1503,7 +1521,6 @@ checkLanded()
 
 updateNumLivingPlayers()
 {
-    wait .05;
     for(;;)
     {
         alivePlayers = 0;
@@ -1511,12 +1528,10 @@ updateNumLivingPlayers()
         for (i = 0; i < players.size; i++)
         {
             player = players[i];
-            if (isAlive(player) && player.sessionstate != "spectator")
+            if(isAlive(player) && player.sessionstate == "playing")
                 alivePlayers += 1;
         }
         level.hud_numLivingPlayers setValue(alivePlayers);
-
-        wait .5; //for resource saving
         wait .05;
     }
 }
@@ -1529,7 +1544,7 @@ checkVictoryRoyale(playerEntity)
         return;
     level.checkingVictoryRoyale = true;
 
-    delayBeforeEndmap = 4;
+    delayBeforeEndmap = 2.75;
 
     alivePlayers = [];
     players = getEntArray("player", "classname");
@@ -1541,65 +1556,76 @@ checkVictoryRoyale(playerEntity)
         if(alivePlayers.size > 1)
             break;
     }
-
-    if (alivePlayers.size == 1)
+    
+    if (alivePlayers.size == 1 || alivePlayers.size == 0)
     {
-        level.battleOver = true;
-
-        winner = alivePlayers[0];
-        winner.hud_victoryRoyale = newClientHudElem(winner);
-        winner.hud_victoryRoyale.alignX = "center";
-        winner.hud_victoryRoyale.alignY = "middle";
-        winner.hud_victoryRoyale.x = 320;
-        winner.hud_victoryRoyale.y = 100;
-        winner.hud_victoryRoyale.color = (0.26, 1, 0.35);
-        winner.hud_victoryRoyale.fontScale = 1.5;
-        winner.hud_victoryRoyale.font = "bigfixed";
-        winner.hud_victoryRoyale setText(&"YOU WIN!");
-
-        level.winnerEntityNumber = winner getEntityNumber();
-        level.winnerName = winner.name;
-
-        // Slow motion effect
-        setCvar("timescale", "0.5");
-        waited = 0;
-        wait_before_slowmotion = 0.25;
-        wait wait_before_slowmotion;
-        waited += wait_before_slowmotion;
-        for(x = .5; x < 1; x+= .05)
-        {
-            wait_during_slowmotion = 0.1 / x;
-            wait wait_during_slowmotion;
-            waited += wait_during_slowmotion;
-            setCvar("timescale", x);
-            //printLn("###### [BR] wait_during_slowmotion: " + wait_during_slowmotion);
-        }
-        setCvar("timescale", "1");
-
-        wait delayBeforeEndmap;
-        waited += delayBeforeEndmap;
+        hud_battleIsOver = newHudElem();
+        hud_battleIsOver.alignX = "center";
+        hud_battleIsOver.alignY = "middle";
+        hud_battleIsOver.x = 320;
+        hud_battleIsOver.y = 35;
+        hud_battleIsOver.fontScale = 1.2;
+        hud_battleIsOver.font = "bigfixed";
+        hud_battleIsOver setText(&"BATTLE IS OVER");
         
-        endMap(waited, playerEntity);
+        if (alivePlayers.size == 1)
+        {
+            level.battleOver = true;
+
+            winner = alivePlayers[0];
+            winner.hud_victoryRoyale = newClientHudElem(winner);
+            winner.hud_victoryRoyale.alignX = "center";
+            winner.hud_victoryRoyale.alignY = "middle";
+            winner.hud_victoryRoyale.x = 320;
+            winner.hud_victoryRoyale.y = 100;
+            winner.hud_victoryRoyale.color = (0.26, 1, 0.35);
+            winner.hud_victoryRoyale.fontScale = 1.5;
+            winner.hud_victoryRoyale.font = "bigfixed";
+            winner.hud_victoryRoyale setText(&"YOU WIN!");
+            
+            level.winnerName = winner.name;
+
+            // Slow motion effect
+            setCvar("timescale", "0.5");
+            waited = 0;
+            wait_before_slowmotion = 0.25;
+            wait wait_before_slowmotion;
+            waited += wait_before_slowmotion;
+            for(x = .5; x < 1; x+= .05)
+            {
+                wait_during_slowmotion = 0.1 / x;
+                wait wait_during_slowmotion;
+                waited += wait_during_slowmotion;
+                setCvar("timescale", x);
+                //printLn("###### [BR] wait_during_slowmotion: " + wait_during_slowmotion);
+            }
+            setCvar("timescale", "1");
+
+            wait delayBeforeEndmap;
+            waited += delayBeforeEndmap;
+            
+            endMap(waited, playerEntity);
+        }
+        else if (alivePlayers.size == 0)
+        {
+            level.battleOver = true;
+
+            hud_victoryRoyale = newHudElem();
+            hud_victoryRoyale.alignX = "center";
+            hud_victoryRoyale.alignY = "middle";
+            hud_victoryRoyale.x = 320;
+            hud_victoryRoyale.y = 100;
+            hud_victoryRoyale.color = level.color_red;
+            hud_victoryRoyale.fontScale = 1.5;
+            hud_victoryRoyale.font = "bigfixed";
+            hud_victoryRoyale setText(&"NO ONE SURVIVED!");
+
+            level.noWinner = true;
+            wait delayBeforeEndmap;
+            endMap(delayBeforeEndmap);
+        }
     }
-    else if (alivePlayers.size == 0)
-    {
-        level.battleOver = true;
-
-        level.hud_victoryRoyale = newHudElem();
-        level.hud_victoryRoyale.alignX = "center";
-        level.hud_victoryRoyale.alignY = "middle";
-        level.hud_victoryRoyale.x = 320;
-        level.hud_victoryRoyale.y = 100;
-        level.hud_victoryRoyale.color = level.color_red;
-        level.hud_victoryRoyale.fontScale = 1.5;
-        level.hud_victoryRoyale.font = "bigfixed";
-        level.hud_victoryRoyale setText(&"NO ONE SURVIVED!");
-
-        level.noWinner = true;
-        wait delayBeforeEndmap;
-        endMap(delayBeforeEndmap);
-    }
-
+    
     level.checkingVictoryRoyale = false;
 }
 
@@ -1607,7 +1633,7 @@ endMap(timeWaitedAfterDeath, playerEntity)
 {
     if (!level.noWinner)
     {
-        if(isDefined(playerEntity)) //TODO: Try to display disconnected player's camera
+        if(isDefined(playerEntity)) //TODO: Try to display player's camera before he disconnected.
             level setupFinalKillcam(timeWaitedAfterDeath, playerEntity);
     }
 
@@ -1628,7 +1654,7 @@ endMap(timeWaitedAfterDeath, playerEntity)
         
         player spawnIntermission();
     }
-    wait 5;
+    wait 3;
     exitLevel(false);
 }
 
