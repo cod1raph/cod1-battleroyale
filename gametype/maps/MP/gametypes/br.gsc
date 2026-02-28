@@ -431,12 +431,10 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
     if(self.sessionteam == "spectator")
         return;
 
-    // If the player was killed by a head shot, let players know it was a head shot kill
     if(sHitLoc == "head" && sMeansOfDeath != "MOD_MELEE")
         sMeansOfDeath = "MOD_HEAD_SHOT";
-
-    // send out an obituary message to all clients about the kill
     obituary(self, attacker, sWeapon, sMeansOfDeath);
+    
     self notify("death");
 
     self.sessionstate = "dead";
@@ -460,29 +458,19 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
     self.deaths = 1;
     
     doKillcam = false;
-    if (!level.battleOver)
+    
+    if (isPlayer(attacker))
     {
-        if (isPlayer(attacker))
+        if (attacker != self)
         {
-            if (attacker == self) // killed himself
+            if (!level.battleOver)
             {
-                attacker.score = attacker.pers["score"];
-            }
-            else
-            {
-                //printLn("###### [BR] Callback_PlayerKilled doKillcam = true");
                 doKillcam = true;
-                attacker.pers["score"]++;
-                attacker.score = attacker.pers["score"];
             }
-        }
-        else
-        {
-            //printLn("###### [BR] Callback_PlayerKilled !isPlayer(attacker)");
+            attacker.score++;
         }
     }
 
-    // Make the player drop health
     self dropHealth();
     body = self cloneplayer();
 
@@ -572,9 +560,7 @@ spawnPlayer(origin, angles)
     self.statusicon = "";
     self.maxhealth = 100;
     self.health = self.maxhealth;
-
-    self.pers["score"] = 0;
-    self.score = self.pers["score"];
+    self.score = 0;
     self.deaths = 0;
 
     model();
@@ -1574,6 +1560,7 @@ checkVictoryRoyale(playerEntity)
 
             winner = alivePlayers[0];
             winner.hud_victoryRoyale = newClientHudElem(winner);
+            winner.hud_victoryRoyale.archived = false;
             winner.hud_victoryRoyale.alignX = "center";
             winner.hud_victoryRoyale.alignY = "middle";
             winner.hud_victoryRoyale.x = 320;
