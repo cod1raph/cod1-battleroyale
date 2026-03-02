@@ -240,6 +240,16 @@ Callback_StartGameType()
     
     thread manageZoneLifecycle();
     thread checkBattleReady();
+
+    //thread addBotClients();
+}
+addBotClients()
+{
+    wait getCvarInt("sv_reconnectlimit");
+    
+    numBots = 2;
+    for(i = 0; i < numBots; i++)
+        bot[i] = addTestClient();
 }
 Callback_PlayerConnect()
 {
