@@ -1136,7 +1136,6 @@ checkPlayerJumped()
             anglesBeforeSpawn = self getPlayerAngles();
             self spawnPlayer(level.planePov.origin, anglesBeforeSpawn);
             self.inPlane = false;
-            self showToPlayer(undefined); // Make player visible to others
 
             delayExitPlane = 0.50;
             underPlaneOrigin =
@@ -1149,6 +1148,7 @@ checkPlayerJumped()
             self linkto(self.jumpPov);
             self.jumpPov moveTo(underPlaneOrigin, delayExitPlane);
             wait delayExitPlane;
+            self showToPlayer(undefined); // Make player visible to others
 
             self unlink();
             self.jumpPov delete();
