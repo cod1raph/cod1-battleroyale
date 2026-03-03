@@ -294,11 +294,10 @@ Callback_PlayerConnect()
             case "german":
             case "russian":
             case "autoassign":
-                
+            
                 if(self.jumped)
                     break;
-                if(isDefined(self.pers["camouflage"]) && response == self.pers["camouflage"])
-                    break; // Selected same camouflage
+                    
                 if(response == "autoassign")
                     response = level.camouflages[randomInt(level.camouflages.size)];
                     
@@ -838,10 +837,10 @@ startBattle()
         player thread checkPlayerInZone();
         player thread checkPlayerJumped();
     }
-    wait 1;
+    wait 0.5;
     hud_doorOpening destroy();
 
-    wait moveDuration - (delayBeforeDoorOpens - 1) - 4; // Check if everyone jumped few seconds before deleting the plane.
+    wait moveDuration - (delayBeforeDoorOpens - 0.5) - 4; // Check if everyone jumped few seconds before deleting the plane.
     for (i = 0; i < players.size; i++)
     {
         player = players[i];
@@ -992,8 +991,10 @@ playZone(fx, static)
             printLn("###### [BR] playZone FINAL");
 
             wait (self.life / 1000);
-            // Destroy HUD
+            // Destroy HUD and zone objective on compass
+            wait 0.5;
             level.hud_zoneShrinkAlert destroy();
+            objective_delete(level.zone.objnum);
         }
     }
 }
@@ -1648,20 +1649,23 @@ checkVictoryRoyale(playerEntity)
             level.winnerName = winner.name;
 
             // Slow motion effect
-            setCvar("timescale", "0.5");
+            timescale = 0.5;
+            setCvar("timescale", timescale);
             waited = 0;
-            wait_before_slowmotion = 0.25;
+            wait_before_slowmotion = 0.3;
             wait wait_before_slowmotion;
             waited += wait_before_slowmotion;
-            for(x = .5; x < 1; x+= .05)
+            for(; timescale < 1; timescale += 0.05)
             {
-                wait_during_slowmotion = 0.1 / x;
+                wait_during_slowmotion = 0.065 / timescale;
                 wait wait_during_slowmotion;
+
                 waited += wait_during_slowmotion;
-                setCvar("timescale", x);
+                //printLn("###### [BR] setCvar timescale: " + timescale);
+                setCvar("timescale", timescale);
                 //printLn("###### [BR] wait_during_slowmotion: " + wait_during_slowmotion);
             }
-            setCvar("timescale", "1");
+            setCvar("timescale", 1);
 
             wait delayBeforeEndmap;
             waited += delayBeforeEndmap;
