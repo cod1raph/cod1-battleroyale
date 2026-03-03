@@ -65,8 +65,8 @@ main()
     level.camouflages[1] = "british";
     level.camouflages[2] = "german";
     level.camouflages[3] = "russian";
-    
-    zoneOriginStart = (-540, -450, -900); //~center of map
+
+    zoneOriginStart = (0, 0, -900);
     level.zone = spawn("script_model", zoneOriginStart);
     level.zoneStatic = spawn("script_model", zoneOriginStart);
 
@@ -967,6 +967,7 @@ playZone(fx, static)
         {
             level endon("zone_static_stop");
 
+            level.zoneStatic.origin = level.zone.origin; // Set to new moved origin.
             level.zoneStatic.angles = level.zone.angles; // Reset angle to initial value (unhide).
             //printLn("###### [BR] playFXOnTag zoneStatic");
             playFXOnTag(fx, level.zoneStatic, level.zone.modelTag);
@@ -976,6 +977,7 @@ playZone(fx, static)
     else
     {
         playFXOnTag(fx, self, self.modelTag);
+        moveZone();
         
         if (self.indexMode != self.modes.size - 1) 
         {
@@ -995,20 +997,36 @@ playZone(fx, static)
         }
     }
 }
-/*
-moveZone() //TODO: move zone while shrinking
+moveZone() // TODO: Ensure zone never goes out of map
 {
-    zoneX = self.origin[0];
-    zoneY = self.origin[1];
-    zoneZ = self.origin[2];
-    destinationOrigin = (zoneX, zoneY + 800, zoneZ);
-    // To move, the efx requires "flags relative"
-    self moveTo(destinationOrigin, (self.life / 1000));
-    wait (self.life / 1000);
-    self delete();
-    level.zoneActive = undefined;
+    //printLn("###### [BR] moveZone");
+    
+    minX = 300;
+    maxX = 1000;
+    minY = 550;
+    maxY = 1700;
+    
+    x = randomIntRange(minX, maxX);
+    y = randomIntRange(minY, maxY);
+    
+    // One in two chance to be negative
+    if(randomInt(1) == 1)
+        x = 0 - x;
+    if(randomInt(1) == 1)
+        y = 0 - y;
+        
+    /*printLn("###### [BR] x = " + x);
+    printLn("###### [BR] y = " + y);*/
+    
+    newZoneX = self.origin[0] + x;
+    newZoneY = self.origin[1] + y;
+
+    /*printLn("###### [BR] newZoneX = " + newZoneX);
+    printLn("###### [BR] newZoneY = " + newZoneY);*/
+    
+    destinationOrigin = (newZoneX, newZoneY, self.origin[2]);
+    self moveTo(destinationOrigin, (self.life / 1000)); // To move, the efx requires "flags relative"
 }
-*/
 keepZoneSizeVarUpdated()
 {
     currentTime = getTime();
