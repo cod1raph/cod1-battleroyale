@@ -169,13 +169,11 @@ Callback_StartGameType()
 
     // Menus
     game["menu_camouflage"] = "camouflage";
-    game["menu_weapon_all"] = "weapon_bolt";
     game["menu_viewmap"] = "viewmap";
     game["menu_quickcommands"] = "quickcommands";
     game["menu_quickstatements"] = "quickstatements";
     game["menu_quickresponses"] = "quickresponses";
     precacheMenu(game["menu_camouflage"]);
-    precacheMenu(game["menu_weapon_all"]);
     precacheMenu(game["menu_viewmap"]);
     precacheMenu(game["menu_quickcommands"]);
     precacheMenu(game["menu_quickstatements"]);
@@ -273,7 +271,6 @@ Callback_PlayerConnect()
     level endon("intermission");
     
     self setClientCvar("g_scriptMainMenu", game["menu_camouflage"]);
-    self setClientCvar("scr_showweapontab", "0");
     self openMenu(game["menu_camouflage"]);
     self.sessionteam = "spectator";
     spawnSpectator();
@@ -305,9 +302,18 @@ Callback_PlayerConnect()
                 
                 self.pers["camouflage"] = response;
                 model();
-                self setClientCvar("scr_showweapontab", "1");
-                self setClientCvar("g_scriptMainMenu", game["menu_weapon_all"]);
-                self openMenu(game["menu_weapon_all"]);
+                
+                // Spawn if not spawned already
+                if (self.sessionstate == "spectator")
+                {
+                    // Don't spawn if plane started flying
+                    //TODO: Link to plane if it's still flying
+                    if (!level.battleStarted)
+                    {
+                        spawnPlayer();
+                    }
+                }
+
                 break;
 
             case "spectator":
@@ -315,74 +321,16 @@ Callback_PlayerConnect()
                 self.fights = false;
                 if (isDefined(self.pers["camouflage"]))
                 {
-                    self.pers["weapon"] = undefined;
                     self.pers["camouflage"] = undefined;
                     self.sessionteam = "spectator";
                     self setClientCvar("g_scriptMainMenu", game["menu_camouflage"]);
-                    self setClientCvar("scr_showweapontab", "0");
                     spawnSpectator();
                 }
-                break;
-
-            case "weapon":
-                self openMenu(game["menu_weapon_all"]);
                 break;
             
             case "viewmap":
                 self openMenu(game["menu_viewmap"]);
                 break;
-            }
-        }
-        else if (menu == game["menu_weapon_all"])
-        {
-            if (response == "camouflage")
-            {
-                self openMenu(game["menu_camouflage"]);
-                continue;
-            }
-            else if (response == "viewmap")
-            {
-                self openMenu(game["menu_viewmap"]);
-                continue;
-            }
-
-            if(!isDefined(self.pers["camouflage"]))
-                continue;
-            if(self.jumped)
-                break;
-                
-            weapon = self maps\mp\gametypes\_teams::restrict_anyteam(response);
-			if (weapon == "restricted")
-			{
-                self openMenu(menu);
-				continue;
-			}
-
-            if(isDefined(self.pers["weapon"]) && self.pers["weapon"] == weapon)
-                continue; // Selected same weapon
-
-            if (isDefined(self.pers["weapon"]))
-            {
-                // Selected another weapon
-                self.pers["weapon"] = weapon;
-                if (!self.inPlane)
-                {
-                    self takeWeapon(self getWeaponSlotWeapon("primary"));
-                    self giveWeapon(self.pers["weapon"]);
-                    self giveMaxAmmo(self.pers["weapon"]);
-                    self setSpawnWeapon(self.pers["weapon"]);
-                    self switchToWeapon(self.pers["weapon"]);
-                }
-            }
-            else
-            {
-                self.pers["weapon"] = weapon;
-                // Preventing player from spawning normally if battle already started.
-                //TODO: Link to plane if it's still flying.
-                if (!level.battleStarted)
-                {
-                    spawnPlayer();
-                }
             }
         }
         else if(menu == game["menu_quickcommands"])
@@ -615,9 +563,8 @@ spawnPlayer(origin, angles)
     if (!self.inPlane)
     {
         loadout();
-        self giveWeapon(self.pers["weapon"]);
-        self giveMaxAmmo(self.pers["weapon"]);
-        self setSpawnWeapon(self.pers["weapon"]);
+        pistol = self getWeaponSlotWeapon("pistol");
+        self setSpawnWeapon(pistol);
     }
     
     self setClientCvar("cg_objectiveText", level.objectiveText);
@@ -805,8 +752,6 @@ startBattle()
 
         if(!isDefined(player.pers["camouflage"]))
             player.pers["camouflage"] = level.camouflages[randomInt(level.camouflages.size)];
-        if(!isDefined(player.pers["weapon"]))
-            player.pers["weapon"] = "mosin_nagant_mp";
 
         player spawnPlayer(originPlanePov, anglesPlanePov);
         player showToPlayer(player); // Make player invisible to others
@@ -1159,9 +1104,6 @@ checkPlayerJumped()
         if (self jumpButtonPressed() || isDefined(self.forceJump))
         {
             self.jumped = true;
-
-            self setClientCvar("g_scriptMainMenu", game["menu_camouflage"]);
-            self setClientCvar("scr_showweapontab", "0");
 
             self.hud_jump_parachute setText(&"");
 
@@ -1569,9 +1511,8 @@ checkLanded()
             
             wait .25;
             loadout();
-            self giveWeapon(self.pers["weapon"]);
-            self giveMaxAmmo(self.pers["weapon"]);
-            self switchToWeapon(self.pers["weapon"]);
+            pistol = self getWeaponSlotWeapon("pistol");
+            self switchToWeapon(pistol);
 
             break;
         }
