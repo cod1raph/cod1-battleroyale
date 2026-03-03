@@ -42,9 +42,9 @@ main()
     level.instantKill_pistol = false;
     if(getCvarInt("br_instantkill_pistol"))
         level.instantKill_pistol = true;
-    level.instantKill_melee = true;
-    if(getCvar("br_instantkill_melee") == "0")
-        level.instantKill_melee = false;
+    level.instantKill_melee = false;
+    if(getCvarInt("br_instantkill_melee"))
+        level.instantKill_melee = true;
     level.damageFeedback = true;
     if(getCvar("br_damagefeedback") == "0")
         level.damageFeedback = false;
