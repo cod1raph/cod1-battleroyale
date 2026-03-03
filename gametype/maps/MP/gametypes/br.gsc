@@ -1008,11 +1008,14 @@ moveZone() // TODO: Ensure zone never goes out of map
     
     x = randomIntRange(minX, maxX);
     y = randomIntRange(minY, maxY);
+
+    /*printLn("###### [BR] x = " + x);
+    printLn("###### [BR] y = " + y);*/
     
     // One in two chance to be negative
-    if(randomInt(1) == 1)
+    if(randomInt(2) == 1)
         x = 0 - x;
-    if(randomInt(1) == 1)
+    if(randomInt(2) == 1)
         y = 0 - y;
         
     /*printLn("###### [BR] x = " + x);
