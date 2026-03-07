@@ -1,5 +1,7 @@
 ////////////////////////////////
-This version of zh_elusive is not original, below is the original readme content (READ_ME_CUTIE.txt).
+This version of zh_elusive is not original,
+this file is named "readme_", so GitHub doesn't automaticaly display the content.
+Below is the original file content (named READ_ME_CUTIE.txt).
 ////////////////////////////////
 
 where it all began, if you're interested to watch timelapses here:
