@@ -406,27 +406,9 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
 
     if(!level.battleStarted)
         return;
-
-    if ((self.health - iDamage) <= 0)
-    {
-        // Player will die
-        // Drop his weapons
-        primary = self getWeaponSlotWeapon("primary");
-        primaryb = self getWeaponSlotWeapon("primaryb");
-        pistol = self getWeaponSlotWeapon("pistol");
-        grenade = self getWeaponSlotWeapon("grenade");
-
-        if(isDefined(primary))
-            // Prevent players from taking parachute from ground
-            if(primary != level.parachute_deployed_hands)
-                self dropItem(primary);
-        if(isDefined(primaryb))
-            self dropItem(primaryb);
-        if(isDefined(pistol))
-            self dropItem(pistol);
-        if(isDefined(grenade))
-            self dropItem(grenade);
-    }
+    
+    if(self playerWillDie(iDamage))
+        self dropWeapons();
 
     // Apply the damage to the player
     self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
@@ -1048,7 +1030,7 @@ checkPlayerInZone()
                 {
                     // Exited zone
                     self.inZone = false;
-                    self.hudInStormDarkness.alpha = 0.3;
+                    self.hudInStormDarkness.alpha = 0.45;
                     self.hudInStormAlert setText(&"You are in the storm!");
                 }
 
@@ -1072,17 +1054,30 @@ checkPlayerInZone()
 
                 if (damagePlayer)
                 {
-                    eInflictor = level.zone;
-                    eAttacker = level.zone;
                     iDamage = 5;
-                    iDFlags = 0;
-                    sMeansOfDeath = "MOD_UNKNOWN";
-                    sWeapon = "none";
-                    vPoint = undefined;
-                    vDir = undefined;
-                    sHitLoc = "none";
-                    psOffsetTime = 0;
-                    self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, psOffsetTime);
+
+                    if (self playerWillDie(iDamage))
+                    {
+                        self dropWeapons();
+                        
+                        eInflictor = level.zone;
+                        eAttacker = level.zone;
+                        iDamage = 5;
+                        iDFlags = 0;
+                        sMeansOfDeath = "MOD_UNKNOWN";
+                        sWeapon = "none";
+                        vPoint = undefined;
+                        vDir = undefined;
+                        sHitLoc = "none";
+                        psOffsetTime = 0;
+                        self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, psOffsetTime);
+                    }
+                    else
+                    {
+                        // Avoiding call to finishPlayerDamage so the camera doesn't kicked (vDir 0,0,0 doesn't give desired result).
+                        // Calling finishPlayerDamage for final hit, so Callback_PlayerKilled could know the zone did it.
+                        self.health -= 5;
+                    }
                     self.lastZoneDamageTime = getTime();
                 }
             }
@@ -1131,12 +1126,12 @@ checkPlayerJumped()
 
             self.jumpPov = spawn("script_origin", level.planePov.origin);
 
-            self linkto(self.jumpPov);
+            self linkTo(self.jumpPov);
             self.jumpPov moveTo(underPlaneOrigin, delayExitPlane);
             wait delayExitPlane;
             self showToPlayer(undefined); // Make player visible to others
 
-            self unlink();
+            self unLink();
             self.jumpPov delete();
             self thread checkPlayerDive();
 
@@ -2491,6 +2486,13 @@ loadout()
     }
 }
 
+playerWillDie(damage)
+{
+    if((self.health - damage) <= 0)
+        return true;
+    return false;
+}
+
 dropHealth()
 {
     if(isDefined(level.healthqueue[level.healthqueuecurrent]))
@@ -2503,6 +2505,26 @@ dropHealth()
     
     if(level.healthqueuecurrent >= 16)
         level.healthqueuecurrent = 0;
+}
+dropWeapons()
+{
+    // Calling this func in Callback_PlayerKilled seems to late.
+
+    primary = self getWeaponSlotWeapon("primary");
+    primaryb = self getWeaponSlotWeapon("primaryb");
+    pistol = self getWeaponSlotWeapon("pistol");
+    grenade = self getWeaponSlotWeapon("grenade");
+
+    if(isDefined(primary))
+        // Prevent players from taking parachute from ground
+        if(primary != level.parachute_deployed_hands)
+            self dropItem(primary);
+    if(isDefined(primaryb))
+        self dropItem(primaryb);
+    if(isDefined(pistol))
+        self dropItem(pistol);
+    if(isDefined(grenade))
+        self dropItem(grenade);
 }
 
 anglesToLeft(angles)
