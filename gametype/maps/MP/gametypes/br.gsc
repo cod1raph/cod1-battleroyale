@@ -14,12 +14,10 @@ main()
     blue = 0.8;
     transitionTime = 0;
     setCullFog(nearDistance, farDistance, red, green, blue, transitionTime);
-    
     ambientPlay("ambient_mp_harbor");
-
     game["layoutimage"] = "zh_elusive";
 
-    level.objectiveText = "Be the last man standing.";
+    level.objectiveText = "Be the last survivor.";
     level.maxClients = getCvarInt("sv_maxclients");
     level.text_waitingPlayers = &"WAITING FOR PLAYERS";
     //level.text_parachuteDeployed = &"PARACHUTE DEPLOYED";
@@ -30,25 +28,32 @@ main()
     level.minPlayers = 10;
     if(getCvarInt("br_minPlayers"))
         level.minPlayers = getCvarInt("br_minPlayers");
-    level.startBattleCountdown = 30;
+    
+    level.startBattleCountdown = 10;
     if(getCvarInt("br_startBattleCountdown"))
         level.startBattleCountdown = getCvarInt("br_startBattleCountdown");
-    level.quickChatDelay = 0.5;
+    
+    level.quickChatDelay = 2;
     if(getCvarFloat("br_quickChatDelay"))
         level.quickChatDelay = getCvarFloat("br_quickChatDelay");
-    level.instantKill_bolt = true;
-    if(getCvar("br_instantkill_bolt") == "0")
-        level.instantKill_bolt = false;
+    
+    level.instantKill_bolt = false;
+    if(getCvarInt("br_instantkill_bolt"))
+        level.instantKill_bolt = true;
+    
     level.instantKill_pistol = false;
     if(getCvarInt("br_instantkill_pistol"))
         level.instantKill_pistol = true;
+    
     level.instantKill_melee = false;
     if(getCvarInt("br_instantkill_melee"))
         level.instantKill_melee = true;
-    level.damageFeedback = true;
-    if(getCvar("br_damagefeedback") == "0")
-        level.damageFeedback = false;
-    level.zoneDuration = 120;
+    
+    level.damageFeedback = false;
+    if(getCvarInt("br_damagefeedback"))
+        level.damageFeedback = true;
+    
+    level.zoneDuration = 60;
     if(getCvarInt("br_zoneDuration"))
         level.zoneDuration = getCvarInt("br_zoneDuration");
     
@@ -56,26 +61,19 @@ main()
     level.model_zone = "xmodel/playerhead_default"; //TODO: Use a custom model instead.
     level.model_plane = "xmodel/c47";
     level.model_parachute = "xmodel/bx_parachute";
-
+    
+    // Weapon paths
     // TODO: Check if can show hands/parachute handles without using a weapon file.
     level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to show hands to indicate parachute is deployed.
-
-    level.camouflages = [];
-    level.camouflages[0] = "american";
-    level.camouflages[1] = "british";
-    level.camouflages[2] = "german";
-    level.camouflages[3] = "russian";
 
     zoneOriginStart = (0, 0, -900);
     level.zone = spawn("script_model", zoneOriginStart);
     level.zoneStatic = spawn("script_model", zoneOriginStart);
-
     level.zone.angles = (-90, 0, 0); //DEPENDS ON MODELS TAG
     level.zone.modelTag = "bip01 spine2";
     level.zone.objnum = 0;
 
     level.zone.modes = [];
-
     level.zone.modes[0]["id"] = "start";
     level.zone.modes[0]["fxId"] = loadfx("fx/zone-start.efx");
     level.zone.modes[0]["startSize"] = "15000";
@@ -136,12 +134,11 @@ main()
     level.zone.modes[11]["startSize"] = level.zone.modes[11-1]["startSize"];
     level.zone.modes[11]["endSize"] = "0";
 
-    level.color_red = (1, 0, 0);
-    level.color_blue = (0, 0, 1);
-    level.color_green = (0, 1, 0);
-
-    if(!isDefined(game["state"]))
-        game["state"] = "playing";
+    level.camouflages = [];
+    level.camouflages[0] = "american";
+    level.camouflages[1] = "british";
+    level.camouflages[2] = "german";
+    level.camouflages[3] = "russian";
 
     level.zone.active = false;
     level.startingBattle = false;
@@ -153,7 +150,14 @@ main()
     level.healthqueue = [];
     level.healthqueuecurrent = 0;
 
+    level.color_red = (1, 0, 0);
+    level.color_blue = (0, 0, 1);
+    level.color_green = (0, 1, 0);
+
     setarchive(true);
+
+    if(!isDefined(game["state"]))
+        game["state"] = "playing";
 }
 
 //CALLBACKS
@@ -187,6 +191,7 @@ Callback_StartGameType()
     precacheShader("gfx/hud/damage_feedback.dds");
     precacheShader("gfx/hud/zone_center.dds");
 
+    // Status icons
     precacheStatusIcon("gfx/hud/hud@status_dead.tga");
     precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
 
@@ -212,19 +217,18 @@ Callback_StartGameType()
     precacheItem("mosin_nagant_sniper_mp");
     precacheItem("kar98k_mp");
     precacheItem("kar98k_sniper_mp");
-    //PISTOLS
+    precacheItem(level.parachute_deployed_hands);
+    // Pistols
     precacheItem("colt_mp");
     precacheItem("luger_mp");
-    //GRENADES
+    // Grenades
     precacheItem("fraggrenade_mp");
     precacheItem("stielhandgranate_mp");
     precacheItem("mk1britishfrag_mp");
     precacheItem("rgd-33russianfrag_mp");
 
     precacheItem("item_health");
-
-    precacheItem(level.parachute_deployed_hands);
-
+    
     maps\mp\gametypes\_teams::initGlobalCvars();
     maps\mp\gametypes\_teams::restrictPlacedWeapons();
 
@@ -238,16 +242,24 @@ Callback_StartGameType()
     
     thread manageZoneLifecycle();
     thread checkBattleReady();
+    thread addBotClients();
 
-    //thread addBotClients();
+    mapCredit = newHudElem();
+    mapCredit.x = 1;
+    mapCredit.y = 480 - 7;
+    mapCredit.fontScale = 0.6;
+    mapCredit.sort = -1;
+    mapCredit setText(&"Map by zilch");
 }
 addBotClients()
 {
-    wait getCvarInt("sv_reconnectlimit");
-    
-    numBots = 2;
-    for(i = 0; i < numBots; i++)
-        bot[i] = addTestClient();
+    numBots = getCvarInt("br_numBots");
+    if (numBots)
+    {
+        wait getCvarInt("sv_reconnectlimit");
+        for(i = 0; i < numBots; i++)
+            bot[i] = addTestClient();
+    }
 }
 Callback_PlayerConnect()
 {
@@ -419,7 +431,7 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
     // Apply the damage to the player
     self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
 }
-Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
+Callback_PlayerKilled(eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
 {
     self endon("spawned");
 
@@ -428,15 +440,15 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
     if(sHitLoc == "head" && sMeansOfDeath != "MOD_MELEE")
         sMeansOfDeath = "MOD_HEAD_SHOT";
-    obituary(self, attacker, sWeapon, sMeansOfDeath);
+    obituary(self, eAttacker, sWeapon, sMeansOfDeath);
     
     self notify("death");
 
     self.sessionstate = "dead";
 
-    if (attacker == level.zone || attacker == level.zoneStatic)
+    if (eAttacker == level.zone || eAttacker == level.zoneStatic)
     {
-        //printLn("###### [BR] Callback_PlayerKilled: attacker is zone");
+        //printLn("###### [BR] Callback_PlayerKilled: eAttacker is zone");
         level thread checkVictoryRoyale(self);
     }
     else if (sMeansOfDeath == "MOD_FALLING")
@@ -446,7 +458,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
     }
     else
     {
-        level thread checkVictoryRoyale(attacker);
+        level thread checkVictoryRoyale(eAttacker);
     }
 
     self.statusicon = "gfx/hud/hud@status_dead.tga";
@@ -454,15 +466,15 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
     
     doKillcam = false;
     
-    if (isPlayer(attacker))
+    if (isPlayer(eAttacker))
     {
-        if (attacker != self)
+        if (eAttacker != self)
         {
             if (!level.battleOver)
             {
                 doKillcam = true;
             }
-            attacker.score++;
+            eAttacker.score++;
         }
     }
 
@@ -475,7 +487,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
     
     if (doKillcam)
     {
-        self thread killcamNormal(attacker, timeToWaitAfterDeath, totalDurationBeforeKill);
+        self thread killcamNormal(eAttacker, timeToWaitAfterDeath, totalDurationBeforeKill);
     }
     else
     {
@@ -755,7 +767,7 @@ startBattle()
 
         player spawnPlayer(originPlanePov, anglesPlanePov);
         player showToPlayer(player); // Make player invisible to others
-        player linkto(level.planePov);
+        player linkTo(level.planePov);
     }
 
     // Send the plane
