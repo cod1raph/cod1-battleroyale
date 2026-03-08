@@ -1697,6 +1697,7 @@ setupFinalKillcam(timeWaitedAfterDeath, playerEntity)
             wait .05;
             player.spectatorclient = -1;
             player.archivetime = 0;
+            player removeKillcamElements();
         }
         
         desiredDurationBeforeKill = timeWaitedAfterDeath + 1;
@@ -1819,8 +1820,8 @@ killcamEnd(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
     {
         self.kc_title = newClientHudElem(self);
         self.kc_title.archived = false;
-        self.kc_title.x = 320;
-        self.kc_title.y = 40;
+        self.kc_title.x = 100;
+        self.kc_title.y = 70;
         self.kc_title.alignX = "center";
         self.kc_title.alignY = "middle";
         self.kc_title.sort = 1; // force to draw after the bars
