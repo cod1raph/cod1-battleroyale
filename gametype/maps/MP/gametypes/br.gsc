@@ -355,7 +355,7 @@ Callback_PlayerConnect()
 }
 Callback_PlayerDisconnect()
 {
-    //printLn("###### [BR] Callback_PlayerDisconnect");
+    //printLnBR("Callback_PlayerDisconnect");
 
     iprintln(&"MPSCRIPT_DISCONNECTED", self);
     self notify("death");
@@ -430,12 +430,12 @@ Callback_PlayerKilled(eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vD
 
     if (eAttacker == level.zone || eAttacker == level.zoneStatic)
     {
-        //printLn("###### [BR] Callback_PlayerKilled: eAttacker is zone");
+        //printLnBR("Callback_PlayerKilled: eAttacker is zone");
         level thread checkVictoryRoyale(self);
     }
     else if (sMeansOfDeath == "MOD_FALLING")
     {
-        //printLn("###### [BR] Callback_PlayerKilled: MOD_FALLING");
+        //printLnBR("Callback_PlayerKilled: MOD_FALLING");
         level thread checkVictoryRoyale(self);
     }
     else
@@ -482,7 +482,7 @@ Callback_PlayerKilled(eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vD
 
 spawnSpectator(origin, angles, died)
 {
-    //printLn("###### [BR] spawnSpectator");
+    //printLnBR("spawnSpectator");
 
     self notify("spawned");
     self notify("spawned_spectator");
@@ -565,7 +565,7 @@ spawnPlayer(origin, angles)
 }
 spawnIntermission()
 {
-    //printLn("###### [BR] spawnIntermission");
+    //printLnBR("spawnIntermission");
 
     self notify("spawned");
     self notify("end_respawn");
@@ -588,7 +588,7 @@ spawnIntermission()
 
 checkBattleReady()
 {
-    //printLn("###### [BR] checkBattleReady");
+    //printLnBR("checkBattleReady");
 
     level endon("battle_start");
 
@@ -693,7 +693,7 @@ checkBattleReady()
 }
 startBattle()
 {
-    printLn("###### [BR] startBattle");
+    printLnBR("startBattle");
 
     level endon("battle_cancel");
     level.startingBattle = true;
@@ -820,7 +820,7 @@ manageZoneLifecycle()
 }
 setupZone(zoneModeIndex)
 {
-    printLn("###### [BR] setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
+    printLnBR("setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
 
     if (!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) // Static zone
     {
@@ -849,7 +849,7 @@ setupZone(zoneModeIndex)
         level.zone.active = false;
         
         level notify("zone_static_stop");
-        //printLn("###### [BR] zoneStatic flip angle");
+        //printLnBR("zoneStatic flip angle");
         /*
         Before reading this comment, see first explanation in playZone()
         Thought about making the zone go down the map to hide it, but moveTo()/moveZ() didn't want to make the 
@@ -884,7 +884,7 @@ setupZone(zoneModeIndex)
 }
 playZone(fx, static)
 {
-    //printLn("###### [BR] playZone");
+    //printLnBR("playZone");
 
     if (static)
     {
@@ -907,7 +907,7 @@ playZone(fx, static)
 
             level.zoneStatic.origin = level.zone.origin; // Set to new moved origin.
             level.zoneStatic.angles = level.zone.angles; // Reset angle to initial value (unhide).
-            //printLn("###### [BR] playFXOnTag zoneStatic");
+            //printLnBR("playFXOnTag zoneStatic");
             playFXOnTag(fx, level.zoneStatic, level.zone.modelTag);
             wait 10; // Using same life value in efx files for all static zones.
         }
@@ -927,7 +927,7 @@ playZone(fx, static)
         else
         {
             // Final zone, will shrinks fully, will play nothing after.
-            printLn("###### [BR] playZone FINAL");
+            printLnBR("playZone FINAL");
 
             wait (self.life / 1000);
             // Destroy HUD and zone objective on compass
@@ -939,7 +939,7 @@ playZone(fx, static)
 }
 moveZone() // TODO: Ensure zone never goes out of map
 {
-    //printLn("###### [BR] moveZone");
+    //printLnBR("moveZone");
     
     minX = 300;
     maxX = 1000;
@@ -949,8 +949,8 @@ moveZone() // TODO: Ensure zone never goes out of map
     x = randomIntRange(minX, maxX);
     y = randomIntRange(minY, maxY);
 
-    /*printLn("###### [BR] x = " + x);
-    printLn("###### [BR] y = " + y);*/
+    /*printLnBR("x = " + x);
+    printLnBR("y = " + y);*/
     
     // One in two chance to be negative
     if(randomInt(2) == 1)
@@ -958,14 +958,14 @@ moveZone() // TODO: Ensure zone never goes out of map
     if(randomInt(2) == 1)
         y = 0 - y;
         
-    /*printLn("###### [BR] x = " + x);
-    printLn("###### [BR] y = " + y);*/
+    /*printLnBR("x = " + x);
+    printLnBR("y = " + y);*/
     
     newZoneX = self.origin[0] + x;
     newZoneY = self.origin[1] + y;
 
-    /*printLn("###### [BR] newZoneX = " + newZoneX);
-    printLn("###### [BR] newZoneY = " + newZoneY);*/
+    /*printLnBR("newZoneX = " + newZoneX);
+    printLnBR("newZoneY = " + newZoneY);*/
     
     destinationOrigin = (newZoneX, newZoneY, self.origin[2]);
     self moveTo(destinationOrigin, (self.life / 1000)); // To move, the efx requires "flags relative"
@@ -1199,14 +1199,14 @@ checkPlayerDive()
     airResistance_parachute_idle = 0.85;
     airResistance_parachute_forward = 0.925;
 
-    //CHECK MOVEMENTS
+    // Check movements
     for(;;)
     {
-        //FORCE STANDING
+        // Force standing
         if(self getStance() != "stand")
             self setClientCvar("cl_stance", "0");
 
-        //DIRECTION KEYS CHECK
+        // Direction keys check
         goingForward = self forwardButtonPressed();
         goingBackward = self backButtonPressed();
         goingLeft = self leftButtonPressed();
@@ -1225,7 +1225,7 @@ checkPlayerDive()
             goingBackward = false;
         }
 
-        //PARACHUTE STATE CHECK
+        // Parachute state check
         checkParachute = false;
         if (self jumpButtonPressed() && !self.blockParachuteCheck)
         {
@@ -1234,12 +1234,12 @@ checkPlayerDive()
             checkParachute = true;
         }
         
+        // Force parachute deployment before touching ground/roof
         if (!self.parachuteEnabled && !self.parachuteDeploymentForced)
         {
-            // Force parachute deployment before touching ground/roof.
             trace = bulletTrace(self.origin, self.origin - (0, 0, 8192), false, undefined);
             trace_position_distance = distance(self.origin, trace["position"]);
-            //printLn("###### [BR] trace_position_distance: " + trace_position_distance);
+            //printLnBR("trace_position_distance: " + trace_position_distance);
             if (trace_position_distance < 1200)
             {
                 self.parachuteDeploymentForced = true;
@@ -1298,7 +1298,8 @@ checkPlayerDive()
 
         if (self.name == "test")
         {
-            //printLn("###### [BR] angles[0] = " + angles[0]);
+            //printLnBR("angles[0] = " + angles[0]);
+
         }
         
         isLookingUp = false;
@@ -1313,25 +1314,6 @@ checkPlayerDive()
         {
             if (goingForward)
             {
-                // Reduce risks of crashing when landing if looking too much below. //TODO: Improve
-                if (angles[0] > 20)
-                {
-                    trace = bulletTrace(self.origin, self.origin - (0, 0, 8192), false, undefined);
-                    trace_position_distance = distance(self.origin, trace["position"]);
-                    if (trace_position_distance < 1500)
-                    {
-                        //printLn("###### [BR] Trying prevent land crash with parachute deployed");
-                        //AS IDLE
-                        newVelocity_x = velocity[0];
-                        newVelocity_y = velocity[1];
-                        newVelocity_z = velocity[2];
-                        newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_idle);
-                        self setVelocity(newVelocity);
-                        wait .05;
-                        continue;
-                    }
-                }
-
                 if (isLookingUp) // Prevent acceleration from pushing upward
                 {
                     //AS IDLE
@@ -1362,6 +1344,11 @@ checkPlayerDive()
                     newVelocity_z = velocity[2] + forwardDirection[2] * acceleration_parachute_forward;
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_forward);
                 }
+                
+                // Prevent too big Z velocity when parachute is deployed, to prevent crashing.
+                maxZVelocity = -800;
+                if(newVelocity[2] < maxZVelocity)
+                    newVelocity = (newVelocity[0], newVelocity[1], maxZVelocity);
             }
             else if (goingBackward)
             {
@@ -1609,9 +1596,9 @@ checkVictoryRoyale(playerEntity)
                 wait wait_during_slowmotion;
 
                 waited += wait_during_slowmotion;
-                //printLn("###### [BR] setCvar timescale: " + timescale);
+                //printLnBR("setCvar timescale: " + timescale);
                 setCvar("timescale", timescale);
-                //printLn("###### [BR] wait_during_slowmotion: " + wait_during_slowmotion);
+                //printLnBR("wait_during_slowmotion: " + wait_during_slowmotion);
             }
             setCvar("timescale", 1);
 
@@ -1728,7 +1715,7 @@ killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 
     if (!isPlayer(attackerEntity))
     {
-        //printLn("###### [BR] killcam: !isPlayer(attackerEntity)");
+        //printLnBR("killcam: !isPlayer(attackerEntity)");
         attackerEntity = self;
     }
     
@@ -2538,5 +2525,10 @@ anglesToBackward(angles)
     forwardDirection = anglesToForward(angles);
     backwardDirection = maps\mp\_utility::vectorScale(forwardDirection, -1);
     return backwardDirection;
+}
+
+printLnBR(message)
+{
+    printLn("###### [BR] " + message);
 }
 //UTILS END
