@@ -1345,7 +1345,7 @@ checkPlayerDive()
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_forward);
                 }
                 
-                // Prevent too big Z velocity when parachute is deployed, to prevent crashing.
+                // Clamp z velocity when parachute is deployed to prevent crashing
                 maxZVelocity = -700;
                 if(newVelocity[2] < maxZVelocity)
                     newVelocity = (newVelocity[0], newVelocity[1], maxZVelocity);
