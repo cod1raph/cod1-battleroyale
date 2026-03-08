@@ -1346,7 +1346,7 @@ checkPlayerDive()
                 }
                 
                 // Prevent too big Z velocity when parachute is deployed, to prevent crashing.
-                maxZVelocity = -800;
+                maxZVelocity = -700;
                 if(newVelocity[2] < maxZVelocity)
                     newVelocity = (newVelocity[0], newVelocity[1], maxZVelocity);
             }
@@ -1651,8 +1651,7 @@ endMap(timeWaitedAfterDeath, playerEntity)
         if(level.noWinner)
             player setClientCvar("cg_objectiveText", "No one survived!");
         else
-            player setClientCvar("cg_objectiveText", &"MPSCRIPT_WINS", level.winnerName);
-        
+            player setClientCvar("cg_objectiveText", &"MPSCRIPT_WINS", level.winnerName + "^7");
         player spawnIntermission();
     }
     wait 3;
