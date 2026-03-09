@@ -62,9 +62,10 @@ main()
     level.model_plane = "xmodel/c47";
     level.model_parachute = "xmodel/bx_parachute";
     
-    // Weapon paths
+    // Weapon names
     // TODO: Check if can show hands/parachute handles without using a weapon file.
     level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to show hands to indicate parachute is deployed.
+    level.startWeapon = "knife_mp";
 
     zoneOriginStart = (0, 0, -900);
     level.zone = spawn("script_model", zoneOriginStart);
@@ -154,13 +155,13 @@ main()
     level.color_blue = (0, 0, 1);
     level.color_green = (0, 1, 0);
 
-    setarchive(true);
+    setArchive(true);
 
     if(!isDefined(game["state"]))
         game["state"] = "playing";
 }
 
-//CALLBACKS
+//// Callbacks
 Callback_StartGameType()
 {
     // View Map menu
@@ -200,7 +201,7 @@ Callback_StartGameType()
     precacheModel(level.model_plane);
     precacheModel(level.model_parachute);
 
-    //PLAYER MODELS
+    // Character models
     mptype\american_airborne::precache();
     mptype\british_airborne::precache();
     mptype\german_wehrmacht::precache();
@@ -210,23 +211,10 @@ Callback_StartGameType()
     game["german_model"] = mptype\german_wehrmacht::main;
     game["russian_model"] = mptype\russian_conscript::main;
 
-    //WEAPONS
-    precacheItem("springfield_mp");
-    precacheItem("enfield_mp");
-    precacheItem("mosin_nagant_mp");
-    precacheItem("mosin_nagant_sniper_mp");
-    precacheItem("kar98k_mp");
-    precacheItem("kar98k_sniper_mp");
+    // Weapons
+    precacheItem(level.startWeapon);
     precacheItem(level.parachute_deployed_hands);
-    // Pistols
-    precacheItem("colt_mp");
-    precacheItem("luger_mp");
-    // Grenades
-    precacheItem("fraggrenade_mp");
-    precacheItem("stielhandgranate_mp");
-    precacheItem("mk1britishfrag_mp");
-    precacheItem("rgd-33russianfrag_mp");
-
+    
     precacheItem("item_health");
     
     maps\mp\gametypes\_teams::initGlobalCvars();
@@ -250,16 +238,6 @@ Callback_StartGameType()
     mapCredit.fontScale = 0.6;
     mapCredit.sort = -1;
     mapCredit setText(&"Map by zilch");
-}
-addBotClients()
-{
-    numBots = getCvarInt("br_numBots");
-    if (numBots)
-    {
-        wait getCvarInt("sv_reconnectlimit");
-        for(i = 0; i < numBots; i++)
-            bot[i] = addTestClient();
-    }
 }
 Callback_PlayerConnect()
 {
@@ -478,8 +456,9 @@ Callback_PlayerKilled(eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vD
         self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles, true);
     }
 }
-//CALLBACKS END
+////
 
+//// Spawn
 spawnSpectator(origin, angles, died)
 {
     //printLnBR("spawnSpectator");
@@ -556,7 +535,7 @@ spawnPlayer(origin, angles)
 
     if (!self.inPlane)
     {
-        loadout();
+        self giveWeapon(level.startWeapon);
         pistol = self getWeaponSlotWeapon("pistol");
         self setSpawnWeapon(pistol);
     }
@@ -585,6 +564,7 @@ spawnIntermission()
 	else
 		maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
 }
+////
 
 checkBattleReady()
 {
@@ -792,7 +772,7 @@ startBattle()
     level.planePov delete();
 }
 
-//ZONE FUNCTIONS
+//// Zone
 manageZoneLifecycle()
 {
     level.hud_zoneShrinkAlert = newHudElem();
@@ -937,7 +917,7 @@ playZone(fx, static)
         }
     }
 }
-moveZone() // TODO: Ensure zone never goes out of map
+moveZone() // TODO: Ensure never goes out of map
 {
     //printLnBR("moveZone");
     
@@ -1086,9 +1066,9 @@ checkPlayerInZone()
         wait .05;
     }
 }
-//ZONE FUNCTIONS END
+////
 
-//SKYDIVE FUNCTIONS
+//// Skydive
 checkPlayerJumped()
 {
     self endon("death");
@@ -1169,19 +1149,10 @@ checkPlayerDive()
     text_hud_jump_parachute_part_concatenated_localized = makeLocalizedString(text_hud_jump_parachute_part_concatenated);
     self.hud_jump_parachute setText(text_hud_jump_parachute_part_concatenated_localized);
 
-    /*self.hud_parachuteStateIndicator = newClientHudElem(self); //TODO: show arms/hands instead
-    self.hud_parachuteStateIndicator.alignX = "center";
-    self.hud_parachuteStateIndicator.alignY = "middle";
-    self.hud_parachuteStateIndicator.x = 320;
-    self.hud_parachuteStateIndicator.y = self.hud_jump_parachute.y + 25;
-    self.hud_parachuteStateIndicator.color = level.color_red;
-    self.hud_parachuteStateIndicator.fontScale = 1.3;
-    self.hud_parachuteStateIndicator setText(level.text_parachuteNotDeployed);*/
-
     self.blockParachuteCheck = false;
 
     //PHYSICS VARIABLES
-    //Acceleration multiplier (diagonal fall)
+    // Acceleration multiplier (diagonal fall)
     acceleration_skydive_forward = 40;
     acceleration_skydive_onlyLeftRight = 25;
     acceleration_skydive_forwardLeftRight = 35;
@@ -1193,7 +1164,7 @@ checkPlayerDive()
     acceleration_parachute_backward = 35;
     acceleration_parachute_backwardLeftRight = 20;
 
-    //Air resistance multiplier (fall slowdown)
+    // Air resistance multiplier (fall slowdown)
     airResistance_skydive_idle = 0.975;
     airResistance_skydive_forward = 0.99;
     airResistance_parachute_idle = 0.85;
@@ -1214,13 +1185,13 @@ checkPlayerDive()
 
         if (goingLeft && goingRight)
         {
-            //left + right = none
+            // left + right = none
             goingLeft = false;
             goingRight = false;
         }
         if (goingForward && goingBackward)
         {
-            //forward + backward = none
+            // forward + backward = none
             goingForward = false;
             goingBackward = false;
         }
@@ -1257,10 +1228,7 @@ checkPlayerDive()
         {
             if (!self.parachuteEnabled)
             {
-                //OPENED
-                /*self.hud_parachuteStateIndicator.color = level.color_green;
-                self.hud_parachuteStateIndicator setText(level.text_parachuteDeployed);*/
-
+                // Opened
                 self giveWeapon(level.parachute_deployed_hands);
                 self switchToWeapon(level.parachute_deployed_hands);
 
@@ -1271,10 +1239,7 @@ checkPlayerDive()
             }
             else
             {
-                //CLOSED
-                /*self.hud_parachuteStateIndicator.color = level.color_red;
-                self.hud_parachuteStateIndicator setText(level.text_parachuteNotDeployed);*/
-                
+                // Closed
                 self takeWeapon(self getCurrentWeapon());
                 
                 self.parachuteEnabled = false;
@@ -1478,6 +1443,7 @@ checkLanded()
 {
     self endon("death");
     self endon("spawned_spectator");
+    self endon("killcamFinal_start");
     
     for(;;)
     {
@@ -1487,7 +1453,6 @@ checkLanded()
 
             if(isDefined(self.hud_jump_parachute))
                 self.hud_jump_parachute destroy();
-            //self.hud_parachuteStateIndicator destroy();
 
             // Check landed under map
             if (self.origin[2] < -600)
@@ -1504,7 +1469,7 @@ checkLanded()
             }
             
             wait .25;
-            loadout();
+            self giveWeapon(level.startWeapon);
             pistol = self getWeaponSlotWeapon("pistol");
             self switchToWeapon(pistol);
 
@@ -1514,7 +1479,7 @@ checkLanded()
         wait .05;
     }
 }
-//SKYDIVE FUNCTIONS END
+////
 
 updateNumLivingPlayers()
 {
@@ -1681,7 +1646,7 @@ showDamageFeedback()
         self.hitBlip destroy();
 }
 
-//KILLCAM FUNCTIONS
+//// Killcam
 setupFinalKillcam(timeWaitedAfterDeath, playerEntity)
 {
     viewers = 0;
@@ -1701,14 +1666,14 @@ setupFinalKillcam(timeWaitedAfterDeath, playerEntity)
         }
         
         desiredDurationBeforeKill = timeWaitedAfterDeath + 1;
-        player thread killcamEnd(playerEntity, timeWaitedAfterDeath, desiredDurationBeforeKill);
+        player thread killcamFinal(playerEntity, timeWaitedAfterDeath, desiredDurationBeforeKill);
         viewers++;
     }
     if(viewers)
         level waittill("finalKillcam_ended");
 }
 
-// TODO: Merge killcamNormal() and killcamEnd() later if seeing no issues.
+// TODO: Merge killcamNormal() and killcamFinal() later if seeing no issues.
 killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 {
     self endon("spawned");
@@ -1792,8 +1757,10 @@ killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
     currentangles = self getPlayerAngles();
     self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles, true);
 }
-killcamEnd(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
+killcamFinal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 {
+    self notify("killcamFinal_start");
+
     self.sessionstate = "spectator";
     self.spectatorclient = attackerEntity getEntityNumber();
     self.archivetime = timeWaitedAfterDeath + totalDurationBeforeKill;
@@ -1878,9 +1845,9 @@ removeKillcamElements()
     if(isdefined(self.kc_timer))
         self.kc_timer destroy();
 }
-//KILLCAM FUNCTIONS END
+////
 
-//VSAY
+//// Quick chat
 quickcommands(response)
 {
     if(!isDefined(self.pers["camouflage"]) || isDefined(self.spamdelay))
@@ -2406,9 +2373,9 @@ doQuickMessage(soundalias, saytext)
     self playSound(soundalias);
     self sayAll(saytext);
 }
-//VSAY END
+////
 
-//UTILS
+//// Utils
 model()
 {
     self detachAll();
@@ -2438,39 +2405,6 @@ isSecondaryWeapon(sWeapon)
         return true;
     }
     return false;
-}
-loadout()
-{
-    switch(self.pers["camouflage"])
-    {
-    case "american":
-        self giveWeapon("colt_mp");
-        self giveMaxAmmo("colt_mp");
-        self giveWeapon("fraggrenade_mp");
-        self giveMaxAmmo("fraggrenade_mp");
-        break;
-
-    case "british":
-        self giveWeapon("colt_mp");
-        self giveMaxAmmo("colt_mp");
-        self giveWeapon("mk1britishfrag_mp");
-        self giveMaxAmmo("mk1britishfrag_mp");
-        break;
-
-    case "russian":
-        self giveWeapon("luger_mp");
-        self giveMaxAmmo("luger_mp");
-        self giveWeapon("rgd-33russianfrag_mp");
-        self giveMaxAmmo("rgd-33russianfrag_mp");
-        break;
-        
-    case "german":
-        self giveWeapon("luger_mp");
-        self giveMaxAmmo("luger_mp");
-        self giveWeapon("stielhandgranate_mp");
-        self giveMaxAmmo("stielhandgranate_mp");
-        break;
-    }
 }
 
 playerWillDie(damage)
@@ -2509,6 +2443,7 @@ dropWeapons()
     if(isDefined(primaryb))
         self dropItem(primaryb);
     if(isDefined(pistol))
+        if(pistol != level.startWeapon)
         self dropItem(pistol);
     if(isDefined(grenade))
         self dropItem(grenade);
@@ -2531,4 +2466,15 @@ printLnBR(message)
 {
     printLn("###### [BR] " + message);
 }
-//UTILS END
+
+addBotClients()
+{
+    numBots = getCvarInt("br_numBots");
+    if (numBots)
+    {
+        wait getCvarInt("sv_reconnectlimit");
+        for(i = 0; i < numBots; i++)
+            bot[i] = addTestClient();
+    }
+}
+////
