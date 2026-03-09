@@ -1317,11 +1317,6 @@ checkPlayerDive()
                     newVelocity_z = velocity[2] + forwardDirection[2] * acceleration_parachute_forward;
                     newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_forward);
                 }
-                
-                // Clamp z velocity when parachute is deployed to prevent crashing
-                maxZVelocity = -700;
-                if(newVelocity[2] < maxZVelocity)
-                    newVelocity = (newVelocity[0], newVelocity[1], maxZVelocity);
             }
             else if (goingBackward)
             {
@@ -1380,6 +1375,11 @@ checkPlayerDive()
                 newVelocity_z = velocity[2];
                 newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_idle);
             }
+            
+            // Clamp z velocity when parachute is deployed to prevent crashing
+            maxZVelocity = -700;
+            if(newVelocity[2] < maxZVelocity)
+                newVelocity = (newVelocity[0], newVelocity[1], maxZVelocity);
         }
         else // Parachute is disabled
         {
@@ -1451,7 +1451,6 @@ checkLanded()
 {
     self endon("death");
     self endon("spawned_spectator");
-    self endon("killcamFinal_start");
     
     for(;;)
     {
@@ -1476,7 +1475,6 @@ checkLanded()
                 self.parachuteEnabled = false;
             }
             
-            wait .25;
             self giveWeapon(level.startWeapon);
             pistol = self getWeaponSlotWeapon("pistol");
             self switchToWeapon(pistol);
@@ -1767,8 +1765,6 @@ killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 }
 killcamFinal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 {
-    self notify("killcamFinal_start");
-
     self.sessionstate = "spectator";
     self.spectatorclient = attackerEntity getEntityNumber();
     self.archivetime = timeWaitedAfterDeath + totalDurationBeforeKill;
@@ -1795,12 +1791,12 @@ killcamFinal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
     {
         self.kc_title = newClientHudElem(self);
         self.kc_title.archived = false;
-        self.kc_title.x = 100;
-        self.kc_title.y = 70;
+        self.kc_title.x = 320;
+        self.kc_title.y = 20;
         self.kc_title.alignX = "center";
         self.kc_title.alignY = "middle";
         self.kc_title.sort = 1; // force to draw after the bars
-        self.kc_title.fontScale = 2.5;
+        self.kc_title.fontScale = 2;
     }
     self.kc_title setText(&"MPSCRIPT_KILLCAM");
 

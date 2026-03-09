@@ -12,17 +12,21 @@ Some features are:
 
 Your server needs to run iw1x-server, see [this tutorial](https://github.com/cod1raph/cod1-tutorials/blob/main/Setup%20iw1x-server.md).
 
-You will have to create 3 pk3 files:
-- One containing the content of the `assets` folder
-- One containing the content of the `gametype` folder, except `br.cfg`
-- One containing the content of the `map` folder
+You will have to create 5 pk3 files:
+- One containing the content of `client/other`
+- One containing the content of `client/weapons`
+- One containing the content of `client/zone`
+- One containing the content of `server`, except `br.cfg`
+- One containing the content of `common/map`
 
 See this tutorial about managing pk3 files: [Manage pk3 files](https://github.com/cod1raph/cod1-tutorials/blob/main/Manage%20pk3%20files.md).
 
 `br.cfg` should be put in your main folder, and you should add `exec br.cfg` in your usual cfg file.
 
-Only the assets and map pk3 should be downloaded by the client.  
-The gametype pk3 should have priority over the assets pk3, because they both contain a `br.gsc` file.
+All the pk3 files should be downloaded by the client, except the server pk3.  
+The server pk3 should have priority over the pk3 made using files fom `client/other`, because they both contain a `br.gsc` file.
+
+Use `fs_game` and put all the pk3 in the directory to avoid conflicts with other servers that would use the same gametype.
 
 g_gametype: `br`  
 mapname: `zh_elusive`
