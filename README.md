@@ -35,7 +35,7 @@ mapname: `zh_elusive`
 - https://github.com/cato-a/CoDaM_MiscMod
 - [Killtube](https://killtube.org/)
 - https://www.ibuddie.at/libcod/index.html
-- https://github.com/BraXi/CoD1_Zombies_1.2_Mod/blob/master/client/xmodel/bx_parachute
+- https://github.com/BraXi/CoD1_Zombies_1.2_Mod/tree/master/client
 - https://gitlab.com/kazam0180/cod1-battleroyale/-/blob/main/client/weapons/mp/br_parachute_mp
 - https://vcodmods.com/maps/zh_elusive-battle-royal-template-
 - https://github.com/thegoog1337

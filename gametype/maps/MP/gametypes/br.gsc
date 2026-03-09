@@ -214,6 +214,12 @@ Callback_StartGameType()
     // Weapons
     precacheItem(level.startWeapon);
     precacheItem(level.parachute_deployed_hands);
+
+    // Grenades
+    precacheItem("fraggrenade_mp");
+    precacheItem("stielhandgranate_mp");
+    precacheItem("mk1britishfrag_mp");
+    precacheItem("rgd-33russianfrag_mp");
     
     precacheItem("item_health");
     
