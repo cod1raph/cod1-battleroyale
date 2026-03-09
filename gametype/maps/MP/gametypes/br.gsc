@@ -806,7 +806,7 @@ manageZoneLifecycle()
 }
 setupZone(zoneModeIndex)
 {
-    printLnBR("setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
+    //printLnBR("setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
 
     if (!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) // Static zone
     {
@@ -976,13 +976,6 @@ checkPlayerInZone()
 
     self.inZone = true;
 
-    self.hudInStormDarkness = newClientHudElem(self);
-    self.hudInStormDarkness.x = 0;
-    self.hudInStormDarkness.y = 0;
-    self.hudInStormDarkness setShader("black", 640, 480);
-    self.hudInStormDarkness.alpha = 0;
-    self.hudInStormDarkness.sort = -1;
-
     self.hudInStormAlert = newClientHudElem(self);
     self.hudInStormAlert.x = 460;
     self.hudInStormAlert.y = 140;
@@ -1007,8 +1000,11 @@ checkPlayerInZone()
             {
                 // Entered zone
                 self.inZone = true;
-                self.hudInStormDarkness.alpha = 0;
                 self.hudInStormAlert setText(&"");
+                
+                // Reset fog //TODO: Check if can use 0/real reset instead of setting small value.
+                transitionTime = 0.33;
+                self setExpFogForPlayer(0.0000001, 0, 0, 0, transitionTime);
             }
             else if (!inZone)
             {
@@ -1016,8 +1012,14 @@ checkPlayerInZone()
                 {
                     // Exited zone
                     self.inZone = false;
-                    self.hudInStormDarkness.alpha = 0.45;
                     self.hudInStormAlert setText(&"You are in the storm!");
+                    
+                    // Using the same color as the zone
+                    red   = 0.145;
+                    green = 0.133;
+                    blue  = 0.247;
+                    transitionTime = 1;
+                    self setExpFogForPlayer(0.0005, red, green, blue, transitionTime);
                 }
 
                 if (level.battleOver)
