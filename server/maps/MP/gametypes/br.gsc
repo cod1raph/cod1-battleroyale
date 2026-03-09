@@ -20,8 +20,6 @@ main()
     level.objectiveText = "Be the last survivor.";
     level.maxClients = getCvarInt("sv_maxclients");
     level.text_waitingPlayers = &"WAITING FOR PLAYERS";
-    //level.text_parachuteDeployed = &"PARACHUTE DEPLOYED";
-    //level.text_parachuteNotDeployed = &"PARACHUTE NOT DEPLOYED";
     level.text_zoneIsShrinking = &"Zone is shrinking ";
     level.text_zoneWillShrink = &"Zone shrinks in ";
 
@@ -1792,11 +1790,11 @@ killcamFinal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
         self.kc_title = newClientHudElem(self);
         self.kc_title.archived = false;
         self.kc_title.x = 320;
-        self.kc_title.y = 20;
+        self.kc_title.y = 10;
         self.kc_title.alignX = "center";
         self.kc_title.alignY = "middle";
         self.kc_title.sort = 1; // force to draw after the bars
-        self.kc_title.fontScale = 2;
+        self.kc_title.fontScale = 1.8;
     }
     self.kc_title setText(&"MPSCRIPT_KILLCAM");
 
