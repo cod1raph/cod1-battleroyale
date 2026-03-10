@@ -242,7 +242,43 @@ Callback_StartGameType()
     mapCredit.fontScale = 0.6;
     mapCredit.sort = -1;
     mapCredit setText(&"Map by zilch");
+
+
+
+
+    //thread checkSpawnedWeapons();
 }
+
+
+
+
+/*checkSpawnedWeapons()
+{
+    for(;;)
+    {
+        //printLnBR("checkSpawnedWeapons");
+        entitytypes = getEntArray();
+        for(i = 0; i < entitytypes.size; i++)
+        {
+            //script_gameobjectname
+            
+            
+
+            if (isDefined(entitytypes[i].classname))
+		    {
+                printLnBR("i(" + i + ") classname: " + entitytypes[i].classname);
+
+                
+            }
+
+        }
+
+        wait .05;
+    }
+}*/
+
+
+
 Callback_PlayerConnect()
 {
     self.statusicon = "gfx/hud/hud@status_connecting.tga";
@@ -1473,10 +1509,14 @@ checkLanded()
                 self.parachuteEnabled = false;
             }
             
+            // If player picked up a weapon when landing, give knife but don't switch to it to let the weapon remain active.
+            // calling getCurrentWeapon didn't work for this case (returned parachute even after calling takeWeapon)
             self giveWeapon(level.startWeapon);
-            pistol = self getWeaponSlotWeapon("pistol");
-            self switchToWeapon(pistol);
-
+            primary = self getWeaponSlotWeapon("primary");
+            primaryb = self getWeaponSlotWeapon("primaryb");
+            if(primary == "none" && primaryb == "none")
+                self switchToWeapon(self getWeaponSlotWeapon("pistol"));
+                
             break;
         }
 
@@ -2432,23 +2472,18 @@ dropHealth()
 dropWeapons()
 {
     // Calling this func in Callback_PlayerKilled seems to late.
-
+    
     primary = self getWeaponSlotWeapon("primary");
     primaryb = self getWeaponSlotWeapon("primaryb");
     pistol = self getWeaponSlotWeapon("pistol");
     grenade = self getWeaponSlotWeapon("grenade");
-
-    if(isDefined(primary))
-        // Prevent players from taking parachute from ground
-        if(primary != level.parachute_deployed_hands)
-            self dropItem(primary);
-    if(isDefined(primaryb))
-        self dropItem(primaryb);
-    if(isDefined(pistol))
-        if(pistol != level.startWeapon)
+    
+    if(primary != level.parachute_deployed_hands)
+        self dropItem(primary);
+    self dropItem(primaryb);
+    if(pistol != level.startWeapon)
         self dropItem(pistol);
-    if(isDefined(grenade))
-        self dropItem(grenade);
+    self dropItem(grenade);
 }
 
 anglesToLeft(angles)
