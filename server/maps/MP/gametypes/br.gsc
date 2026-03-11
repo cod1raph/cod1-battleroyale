@@ -202,13 +202,15 @@ Callback_StartGameType()
     // Character models
     mptype\american_airborne::precache();
     mptype\british_airborne::precache();
+    mptype\british_commando::precache();
+    mptype\german_fallschirmjagercamo::precache();
+    mptype\german_fallschirmjagergrey::precache();
+    mptype\german_kriegsmarine::precache();
+    mptype\german_waffen::precache();
     mptype\german_wehrmacht::precache();
     mptype\russian_conscript::precache();
-    game["american_model"] = mptype\american_airborne::main;
-    game["british_model"] = mptype\british_airborne::main;
-    game["german_model"] = mptype\german_wehrmacht::main;
-    game["russian_model"] = mptype\russian_conscript::main;
-
+    mptype\russian_veteran::precache();
+    
     // Weapons
     precacheItem(level.startWeapon);
     precacheItem(level.parachute_deployed_hands);
@@ -2421,7 +2423,66 @@ doQuickMessage(soundalias, saytext)
 model()
 {
     self detachAll();
-    [[game[self.pers["camouflage"] + "_model"] ]]();
+    switch(self.pers["camouflage"])
+    {
+        case "american":
+
+            mptype\american_airborne::main();
+
+            break;
+        
+        case "british":
+        
+            if (randomInt(2) == 0)
+            {
+                mptype\british_airborne::main();
+            }
+            else
+            {
+                mptype\british_commando::main();
+            }
+            
+            break;
+
+        case "german":
+        
+            randomInt = randomInt(5);
+            if (randomInt == 0)
+            {
+                mptype\german_fallschirmjagercamo::main();
+            }
+            else if (randomInt == 1)
+            {
+                mptype\german_fallschirmjagergrey::main();
+            }
+            else if (randomInt == 2)
+            {
+                mptype\german_kriegsmarine::main();
+            }
+            else if (randomInt == 3)
+            {
+                mptype\german_waffen::main();
+            }
+            else if (randomInt == 4)
+            {
+                mptype\german_wehrmacht::main();
+            }
+        
+            break;
+
+        case "russian":
+
+            if (randomInt(2) == 0)
+            {
+                mptype\russian_conscript::main();
+            }
+            else
+            {
+                mptype\russian_veteran::main();
+            }
+        
+            break;
+    }
 }
 
 isBoltWeapon(sWeapon)
