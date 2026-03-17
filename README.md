@@ -11,7 +11,7 @@ Some features are:
 
 ## Setup notes
 
-Your server needs to run iw1x-server, see [this tutorial](https://github.com/cod1raph/cod1-tutorials/blob/main/Setup%20iw1x-server.md).  
+Your server needs to run [iw1x-server](https://github.com/cod1raph/iw1x-server-r), see [this tutorial](https://github.com/cod1raph/cod1-tutorials/blob/main/Setup%20iw1x-server.md).  
 Ensure to use the latest release when updating the gametype from this repo.
 
 You will have to create 5 pk3 files:
