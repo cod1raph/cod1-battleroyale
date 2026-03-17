@@ -1,5 +1,5 @@
 {
 	map        "zh_elusive"
 	longname   "zh_elusive"
-	gametype   "dm tdm sd bel"
+	gametype   "dm"
 }

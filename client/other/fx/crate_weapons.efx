@@ -1,0 +1,25 @@
+Particle
+{
+	life				2000
+
+	rgb
+	{
+		start			0.9176 0.851 0
+	}
+
+	alpha
+	{
+		start			0.4
+	}
+
+	size
+	{
+		start			40
+	}
+	
+	shaders
+	[
+		//gfx/effects/crate_weapons
+		gfx/effects/flash1
+	]
+}

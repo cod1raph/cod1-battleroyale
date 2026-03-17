@@ -2,7 +2,8 @@
 
 Some features are:
 - Shrinking zone
-- Skydive from plane
+- Skydiving
+- Weapon crates
 - Last kill slow motion
 
 ---
@@ -17,7 +18,7 @@ You will have to create 5 pk3 files:
 - One containing the content of `client/weapons`
 - One containing the content of `client/zone`
 - One containing the content of `server`, except `br.cfg`
-- One containing the content of `common/map`
+- One containing the content of `common/map` , except `source`
 
 See this tutorial about managing pk3 files: [Manage pk3 files](https://github.com/cod1raph/cod1-tutorials/blob/main/Manage%20pk3%20files.md).
 
@@ -42,5 +43,7 @@ mapname: `zh_elusive`
 - https://github.com/BraXi/CoD1_Zombies_1.2_Mod/tree/master/client
 - https://gitlab.com/kazam0180/cod1-battleroyale/-/blob/main/client/weapons/mp/br_parachute_mp
 - https://vcodmods.com/maps/zh_elusive-battle-royal-template-
+- [CoD1 Radiant Tutorials by TheGoog](https://www.youtube.com/playlist?list=PLb5ihZo7ved010imAmoZxa5C5946Oi-9z)
+- [CoDRadiant Beginner Tutorials by zilch (Oct 24, 2024)](https://www.youtube.com/@hcliz/videos)
 - https://github.com/thegoog1337
 - https://github.com/hBrutal

@@ -55,6 +55,11 @@ main()
     if(getCvarInt("br_zoneDuration"))
         level.zoneDuration = getCvarInt("br_zoneDuration");
     
+    level.crateOpeningDuration = 3;
+    if(getCvarFloat("br_crateOpeningDuration"))
+        level.crateOpeningDuration = getCvarFloat("br_crateOpeningDuration");
+    level.crateOpeningBarSize = 288;
+    
     // Model paths
     level.model_zone = "xmodel/playerhead_default"; //TODO: Use a custom model instead.
     level.model_plane = "xmodel/c47";
@@ -62,10 +67,10 @@ main()
     
     // Weapon names
     // TODO: Check if can show hands/parachute handles without using a weapon file.
-    level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to show hands to indicate parachute is deployed.
+    level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to show parachute hands+handles to indicate deployment.
     level.startWeapon = "knife_mp";
 
-    zoneOriginStart = (0, 0, -900);
+    zoneOriginStart = (0, 0, -700);
     level.zone = spawn("script_model", zoneOriginStart);
     level.zoneStatic = spawn("script_model", zoneOriginStart);
     level.zone.angles = (-90, 0, 0); //DEPENDS ON MODELS TAG
@@ -74,61 +79,61 @@ main()
 
     level.zone.modes = [];
     level.zone.modes[0]["id"] = "start";
-    level.zone.modes[0]["fxId"] = loadfx("fx/zone-start.efx");
+    level.zone.modes[0]["fxId"] = loadFx("fx/zone-start.efx");
     level.zone.modes[0]["startSize"] = "15000";
 
     level.zone.modes[1]["id"] = "start_1";
-    level.zone.modes[1]["fxId"] = loadfx("fx/zone-start_1.efx");
+    level.zone.modes[1]["fxId"] = loadFx("fx/zone-start_1.efx");
     level.zone.modes[1]["life"] = "10000";
     level.zone.modes[1]["startSize"] = level.zone.modes[1-1]["startSize"];
     level.zone.modes[1]["endSize"] = "12000";
 
     level.zone.modes[2]["id"] = "1";
-    level.zone.modes[2]["fxId"] = loadfx("fx/zone1.efx");
+    level.zone.modes[2]["fxId"] = loadFx("fx/zone1.efx");
     level.zone.modes[2]["startSize"] = level.zone.modes[2-1]["endSize"];
 
     level.zone.modes[3]["id"] = "1_2";
-    level.zone.modes[3]["fxId"] = loadfx("fx/zone1_2.efx");
+    level.zone.modes[3]["fxId"] = loadFx("fx/zone1_2.efx");
     level.zone.modes[3]["life"] = "10000";
     level.zone.modes[3]["startSize"] = level.zone.modes[3-1]["startSize"];
     level.zone.modes[3]["endSize"] = "9000";
 
     level.zone.modes[4]["id"] = "2";
-    level.zone.modes[4]["fxId"] = loadfx("fx/zone2.efx");
+    level.zone.modes[4]["fxId"] = loadFx("fx/zone2.efx");
     level.zone.modes[4]["startSize"] = level.zone.modes[4-1]["endSize"];
 
     level.zone.modes[5]["id"] = "2_3";
-    level.zone.modes[5]["fxId"] = loadfx("fx/zone2_3.efx");
+    level.zone.modes[5]["fxId"] = loadFx("fx/zone2_3.efx");
     level.zone.modes[5]["life"] = "10000";
     level.zone.modes[5]["startSize"] = level.zone.modes[5-1]["startSize"];
     level.zone.modes[5]["endSize"] = "6500";
 
     level.zone.modes[6]["id"] = "3";
-    level.zone.modes[6]["fxId"] = loadfx("fx/zone3.efx");
+    level.zone.modes[6]["fxId"] = loadFx("fx/zone3.efx");
     level.zone.modes[6]["startSize"] = level.zone.modes[6-1]["endSize"];
 
     level.zone.modes[7]["id"] = "3_4";
-    level.zone.modes[7]["fxId"] = loadfx("fx/zone3_4.efx");
+    level.zone.modes[7]["fxId"] = loadFx("fx/zone3_4.efx");
     level.zone.modes[7]["life"] = "10000";
     level.zone.modes[7]["startSize"] = level.zone.modes[7-1]["startSize"];
     level.zone.modes[7]["endSize"] = "4250";
 
     level.zone.modes[8]["id"] = "4";
-    level.zone.modes[8]["fxId"] = loadfx("fx/zone4.efx");
+    level.zone.modes[8]["fxId"] = loadFx("fx/zone4.efx");
     level.zone.modes[8]["startSize"] = level.zone.modes[8-1]["endSize"];
 
     level.zone.modes[9]["id"] = "4_5";
-    level.zone.modes[9]["fxId"] = loadfx("fx/zone4_5.efx");
+    level.zone.modes[9]["fxId"] = loadFx("fx/zone4_5.efx");
     level.zone.modes[9]["life"] = "10000";
     level.zone.modes[9]["startSize"] = level.zone.modes[9-1]["startSize"];
     level.zone.modes[9]["endSize"] = "2000";
 
     level.zone.modes[10]["id"] = "5";
-    level.zone.modes[10]["fxId"] = loadfx("fx/zone5.efx");
+    level.zone.modes[10]["fxId"] = loadFx("fx/zone5.efx");
     level.zone.modes[10]["startSize"] = level.zone.modes[10-1]["endSize"];
 
     level.zone.modes[11]["id"] = "5_end";
-    level.zone.modes[11]["fxId"] = loadfx("fx/zone5_end.efx");
+    level.zone.modes[11]["fxId"] = loadFx("fx/zone5_end.efx");
     level.zone.modes[11]["life"] = "10000";
     level.zone.modes[11]["startSize"] = level.zone.modes[11-1]["startSize"];
     level.zone.modes[11]["endSize"] = "0";
@@ -138,6 +143,8 @@ main()
     level.camouflages[1] = "british";
     level.camouflages[2] = "german";
     level.camouflages[3] = "russian";
+
+    level.crate_efx = loadFx("fx/crate_weapons.efx");
 
     level.zone.active = false;
     level.startingBattle = false;
@@ -184,6 +191,7 @@ Callback_StartGameType()
 
     // Shaders
     precacheShader("black");
+    precacheShader("white");
     precacheShader("hudScoreboard_mp");
     precacheShader("gfx/hud/hud@mpflag_none.tga");
     precacheShader("gfx/hud/hud@mpflag_spectator.tga");
@@ -212,19 +220,42 @@ Callback_StartGameType()
     mptype\russian_veteran::precache();
     
     // Weapons
-    precacheItem(level.startWeapon);
-    precacheItem(level.parachute_deployed_hands);
-
+    precacheItem("fg42_mp");
+    precacheItem("panzerfaust_mp");
+    precacheItem("enfield_mp");
+    precacheItem("m1carbine_mp");
+    precacheItem("m1garand_mp");
+    precacheItem("thompson_mp");
+    precacheItem("bar_mp");
+    precacheItem("springfield_mp");
+    precacheItem("sten_mp");
+    precacheItem("bren_mp");
+    precacheItem("mosin_nagant_mp");
+    precacheItem("ppsh_mp");
+    precacheItem("mosin_nagant_sniper_mp");
+    precacheItem("kar98k_mp");
+    precacheItem("mp40_mp");
+    precacheItem("mp44_mp");
+    precacheItem("kar98k_sniper_mp");
+    // Pistols
+    precacheItem("colt_mp");
+    precacheItem("luger_mp");
     // Grenades
     precacheItem("fraggrenade_mp");
     precacheItem("stielhandgranate_mp");
     precacheItem("mk1britishfrag_mp");
     precacheItem("rgd-33russianfrag_mp");
-    
+    // Items
     precacheItem("item_health");
+    precacheItem("item_health_small");
+    precacheItem("item_health_large");
+    precacheItem("item_ammo_stielhandgranate_closed");
+    precacheItem("item_ammo_stielhandgranate_open");
+    // Custom
+    precacheItem(level.startWeapon);
+    precacheItem(level.parachute_deployed_hands);
     
     maps\mp\gametypes\_teams::initGlobalCvars();
-    maps\mp\gametypes\_teams::restrictPlacedWeapons();
 
     setClientNameMode("auto_change");
 
@@ -238,49 +269,16 @@ Callback_StartGameType()
     thread checkBattleReady();
     thread addBotClients();
 
+    // Calling getEnt on crates triggers before starting battle for faster debugging
+    triggers_crates_load();
+
     mapCredit = newHudElem();
     mapCredit.x = 1;
     mapCredit.y = 480 - 7;
     mapCredit.fontScale = 0.6;
     mapCredit.sort = -1;
-    mapCredit setText(&"Map by zilch");
-
-
-
-
-    //thread checkSpawnedWeapons();
+    mapCredit setText(&"Map by zilch (modified)");
 }
-
-
-
-
-/*checkSpawnedWeapons()
-{
-    for(;;)
-    {
-        //printLnBR("checkSpawnedWeapons");
-        entitytypes = getEntArray();
-        for(i = 0; i < entitytypes.size; i++)
-        {
-            //script_gameobjectname
-            
-            
-
-            if (isDefined(entitytypes[i].classname))
-		    {
-                printLnBR("i(" + i + ") classname: " + entitytypes[i].classname);
-
-                
-            }
-
-        }
-
-        wait .05;
-    }
-}*/
-
-
-
 Callback_PlayerConnect()
 {
     self.statusicon = "gfx/hud/hud@status_connecting.tga";
@@ -529,13 +527,13 @@ spawnSpectator(origin, angles, died)
     else
     {
         spawnpointname = "mp_deathmatch_intermission";
-		spawnpoints = getentarray(spawnpointname, "classname");
-		spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
+        spawnpoints = getentarray(spawnpointname, "classname");
+        spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
 
-		if(isdefined(spawnpoint))
-			self spawn(spawnpoint.origin, spawnpoint.angles);
-		else
-			maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
+        if(isdefined(spawnpoint))
+            self spawn(spawnpoint.origin, spawnpoint.angles);
+        else
+            maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
     }
 
     self setClientCvar("cg_objectiveText", level.objectiveText);
@@ -598,13 +596,13 @@ spawnIntermission()
     self.archivetime = 0;
 
     spawnpointname = "mp_deathmatch_intermission";
-	spawnpoints = getentarray(spawnpointname, "classname");
-	spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
+    spawnpoints = getentarray(spawnpointname, "classname");
+    spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
 
-	if(isdefined(spawnpoint))
-		self spawn(spawnpoint.origin, spawnpoint.angles);
-	else
-		maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
+    if(isdefined(spawnpoint))
+        self spawn(spawnpoint.origin, spawnpoint.angles);
+    else
+        maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
 }
 ////
 
@@ -715,7 +713,7 @@ checkBattleReady()
 }
 startBattle()
 {
-    printLnBR("startBattle");
+    //printLnBR("startBattle");
 
     level endon("battle_cancel");
     level.startingBattle = true;
@@ -735,6 +733,8 @@ startBattle()
     level.hud_numLivingPlayers.y = 80;
     level.hud_numLivingPlayers.label = &"Alive: ";
     thread updateNumLivingPlayers();
+
+    triggers_crates_setup();
 
     originPlane = (-1520, 12000, 7000);
     anglesPlane = (0, -90, 0);
@@ -813,6 +813,171 @@ startBattle()
     level.plane delete();
     level.planePov delete();
 }
+
+//// Weapon crates
+triggers_crates_load()
+{
+    level.weaponCrates = [];
+    entArray = getEntArray();
+    for(i = 0; i < entArray.size; i++)
+    {
+        if (isDefined(entArray[i].targetname))
+        {
+            if (starts_with(entArray[i].targetname, "trigger_crate_"))
+            {
+                /*
+                If there is 2 or more entities with same targetname, you will get error:
+                - getent used with more than one entity
+                Uncomment the below printLn, the last targetname will be the one to fix.
+                You could find it in Radiant: Edit > Entity Info
+                */
+                //printLn("######## getEnt for: " + entArray[i].targetname);
+                level.weaponCrates[level.weaponCrates.size] = getEnt(entArray[i].targetname, "targetname");
+            }
+        }
+    }
+}
+triggers_crates_setup()
+{
+    for(i = 0; i < level.weaponCrates.size; i++)
+    {
+        level.weaponCrates[i] thread trigger_crate_monitor();
+        level.weaponCrates[i] thread trigger_crate_efx();
+    }
+}
+trigger_crate_monitor()
+{
+    for(;;)
+    {
+        self waittill("trigger", entity);
+
+        if (isPlayer(entity) && entity isOnGround())
+        {
+            if (!isDefined(entity.triggerIcon))
+            {
+                entity.triggerIcon = newClientHudElem(entity);
+                entity.triggerIcon.alignX = "center";
+                entity.triggerIcon.alignY = "middle";
+                entity.triggerIcon.x = 320;
+                entity.triggerIcon.y = 350;
+                entity.triggerIcon.fontScale = 1.5;
+                entity.triggerIcon setText(&"Hold ^1[{+activate}] ^7to open");
+            }
+            
+            while(entity isTouching(self) && isAlive(entity) && entity useButtonPressed())
+            {
+                entity notify("kill_check_trigger_crate");
+
+                if (!isDefined(entity.progressbackground))
+                {
+                    entity.progressbackground = newClientHudElem(entity);
+                    entity.progressbackground.alignX = "center";
+                    entity.progressbackground.alignY = "middle";
+                    entity.progressbackground.x = 320;
+                    entity.progressbackground.y = 385;
+                    entity.progressbackground.alpha = 0.5;
+                }
+                entity.progressbackground setShader("black", (level.crateOpeningBarSize + 4), 12);
+                
+                if (!isDefined(entity.progressbar))
+                {
+                    entity.progressbar = newClientHudElem(entity);
+                    entity.progressbar.alignX = "left";
+                    entity.progressbar.alignY = "middle";
+                    entity.progressbar.x = (320 - (level.crateOpeningBarSize / 2.0));
+                    entity.progressbar.y = 385;
+                }
+                entity.progressbar setShader("white", 0, 8);
+                entity.progressbar scaleOverTime(level.crateOpeningDuration, level.crateOpeningBarSize, 8);
+
+                entity linkTo(self);
+                self.progressTime = 0;
+
+                while(isAlive(entity) && entity useButtonPressed() && (self.progressTime < level.crateOpeningDuration))
+                {
+                    self.progressTime += 0.05;
+                    wait 0.05;
+                }
+
+                if (self.progressTime >= level.crateOpeningDuration)
+                {
+                    entity.triggerIcon destroy();
+                    entity.progressbackground destroy();
+                    entity.progressbar destroy();
+
+                    self notify("stop_efx_trigger_crate");
+                    
+                    self delete();
+                    
+                    entity crateSpawnStuff();
+                    
+                    return;
+                }
+                else
+                {
+                    entity.progressbackground destroy();
+                    entity.progressbar destroy();
+                    entity unlink();
+                }
+
+                wait .05;
+            }
+            
+            entity thread check_trigger_crate(self);
+        }
+    }
+}
+check_trigger_crate(trigger)
+{
+    self notify("kill_check_trigger_crate");
+    self endon("kill_check_trigger_crate");
+
+    while(isDefined(trigger) && self isTouching(trigger) && isAlive(self))
+        wait 0.05;
+
+    if(isDefined(self.triggerIcon))
+        self.triggerIcon destroy();
+}
+trigger_crate_efx()
+{
+    self endon("stop_efx_trigger_crate");
+    for(;;)
+    {
+        playFX(level.crate_efx, self.origin + (0, 0, 20));
+        wait 2;
+    }
+}
+crateSpawnStuff()
+{
+    stuff = [];
+    stuff[stuff.size] = randomPrimary();
+    stuff[stuff.size] = randomPrimary();
+    stuff[stuff.size] = randomSecondary();
+    stuff[stuff.size] = randomGrenade();
+    stuff[stuff.size] = randomItem();
+    
+    viewOrigin = self getViewOrigin();
+    //printLn("################ viewOrigin: " + viewOrigin);
+    // Lower z a bit not to disturb player's eyesight
+    viewOrigin = (viewOrigin[0], viewOrigin[1], viewOrigin[2] - 10);
+
+    playerAngles = self getPlayerAngles();
+    forwardDirection = anglesToForward(playerAngles);
+    scale_amount = 15; // Higher value = more distant in front
+    spawnOrigin = viewOrigin + maps\mp\_utility::vectorScale(forwardDirection, scale_amount);
+
+    // Clamp z to prevent spawning below player
+    if(spawnOrigin[2] <= self.origin[2])
+        spawnOrigin = (spawnOrigin[0], spawnOrigin[1], self.origin[2] + 3); // self.origin[2] seems not enough on some surfaces.
+
+    //printLn("################ spawnOrigin: " + spawnOrigin);
+    for(i = 0; i < stuff.size; i++)
+    {
+        spawnedStuff = spawn(stuff[i], spawnOrigin + (randomInt(10), randomInt(10), 0));
+        spawnedStuff.angles = (0, randomInt(360), 0);
+    }
+}
+////
 
 //// Zone
 manageZoneLifecycle()
@@ -2420,6 +2585,11 @@ doQuickMessage(soundalias, saytext)
 ////
 
 //// Utils
+printLnBR(message)
+{
+    printLn("###### [BR] " + message);
+}
+
 model()
 {
     self detachAll();
@@ -2483,6 +2653,55 @@ model()
         
             break;
     }
+}
+
+randomPrimary()
+{
+    random = [];
+    random[random.size] = "mpweapon_mosinnagant";
+    random[random.size] = "mpweapon_mosinnagantsniper";
+    random[random.size] = "mpweapon_kar98k";
+    random[random.size] = "mpweapon_kar98k_scoped";
+    random[random.size] = "mpweapon_enfield";
+    random[random.size] = "mpweapon_springfield";
+    random[random.size] = "mpweapon_m1carbine";
+    random[random.size] = "mpweapon_m1garand";
+    random[random.size] = "mpweapon_ppsh";
+    random[random.size] = "mpweapon_thompson";
+    random[random.size] = "mpweapon_mp40";
+    random[random.size] = "mpweapon_sten";
+    random[random.size] = "mpweapon_mp44";
+    random[random.size] = "mpweapon_bar";
+    random[random.size] = "mpweapon_bren";
+    random[random.size] = "mpweapon_fg42";
+    random[random.size] = "mpweapon_panzerfaust";
+    return random[randomInt(random.size)];
+}
+randomSecondary()
+{
+    random = [];
+    random[random.size] = "mpweapon_colt";
+    random[random.size] = "mpweapon_luger";
+    return random[randomInt(random.size)];
+}
+randomGrenade()
+{
+    random = [];
+    random[random.size] = "mpweapon_stielhandgranate";
+    random[random.size] = "mpweapon_russiangrenade";
+    random[random.size] = "mpweapon_mk1britishfrag";
+    random[random.size] = "mpweapon_fraggrenade";
+    return random[randomInt(random.size)];
+}
+randomItem()
+{
+    random = [];
+    random[random.size] = "item_ammo_stielhandgranate_closed";
+    random[random.size] = "item_ammo_stielhandgranate_open";
+    random[random.size] = "item_health";
+    random[random.size] = "item_health_large";
+    random[random.size] = "item_health_small";
+    return random[randomInt(random.size)];
 }
 
 isBoltWeapon(sWeapon)
@@ -2558,11 +2777,6 @@ anglesToBackward(angles)
     forwardDirection = anglesToForward(angles);
     backwardDirection = maps\mp\_utility::vectorScale(forwardDirection, -1);
     return backwardDirection;
-}
-
-printLnBR(message)
-{
-    printLn("###### [BR] " + message);
 }
 
 addBotClients()
