@@ -940,12 +940,15 @@ check_trigger_crate(trigger)
 }
 trigger_crate_efx()
 {
-    self endon("stop_efx_trigger_crate");
-    for(;;)
-    {
-        playFX(level.crate_efx, self.origin + (0, 0, 20));
-        wait 2;
-    }
+    life = 2;
+    ent = playLoopedFX(level.crate_efx, life, self.origin + (0, 0, 20));
+    self waittill("stop_efx_trigger_crate");
+    /*
+    The efx will disappear after its life completes,
+    using a small life so it doesn't take too long to disappear,
+    but not too small to make "blinks" less frequent.
+    */
+    ent delete();
 }
 crateSpawnStuff()
 {
