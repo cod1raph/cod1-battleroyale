@@ -17,4 +17,4 @@
 name,sequence,file,vol_min,vol_max,pitch_min,pitch_max,dist_min,dist_max,channel,type,probability,loop,masterslave,loadspec,subtitle
 
 
-in_plane,,vehicles/c47_drone_loop.wav,0.75,1,,,1000,,voice,streamed,,looping,,
+in_plane,,vehicles/condor_move.wav,0.75,1,,,1000,,voice,streamed,,looping,,

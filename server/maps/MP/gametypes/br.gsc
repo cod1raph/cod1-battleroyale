@@ -62,7 +62,7 @@ main()
     
     // Model paths
     level.model_zone = "xmodel/playerhead_default"; //TODO: Use a custom model instead.
-    level.model_plane = "xmodel/c47";
+    level.model_plane = "xmodel/vehicle_german_condor";
     level.model_parachute = "xmodel/bx_parachute";
     
     // Weapon names
@@ -744,7 +744,7 @@ startBattle()
 
     originPlanePov =
         (level.plane.origin[0],
-        level.plane.origin[1] + 850,
+        level.plane.origin[1] + 1100,
         level.plane.origin[2] + 300);
     anglesPlanePov =
         (level.plane.angles[0] + 35,
@@ -774,9 +774,9 @@ startBattle()
         player linkTo(level.planePov);
     }
 
-    // Send the plane
-    level.plane moveY(moveDistance, moveDuration);
+    // Move the plane
     level.plane playLoopSound("in_plane");
+    level.plane moveY(moveDistance, moveDuration);
     level.planePov moveY(moveDistance, moveDuration);
     
     delayBeforeDoorOpens = 3;
@@ -802,9 +802,12 @@ startBattle()
     hud_doorOpening destroy();
 
     wait moveDuration - (delayBeforeDoorOpens - 0.5) - 4; // Check if everyone jumped few seconds before deleting the plane.
+    players = getEntArray("player", "classname");
     for (i = 0; i < players.size; i++)
     {
         player = players[i];
+        if(!player.fights)
+            continue;
         if(isAlive(player) && !player.jumped)
             player.forceJump = true;
     }
