@@ -61,13 +61,13 @@ main()
     level.crateOpeningBarSize = 288;
     
     // Model paths
-    level.model_zone = "xmodel/playerhead_default"; //TODO: Use a custom model instead.
+    level.model_zone = "xmodel/playerhead_default"; // TODO: Use a custom model instead.
     level.model_plane = "xmodel/vehicle_german_condor";
     level.model_parachute = "xmodel/bx_parachute";
     
     // Weapon names
     // TODO: Check if can show hands/parachute handles without using a weapon file.
-    level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to show parachute hands+handles to indicate deployment.
+    level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to indicate deployment.
     level.startWeapon = "knife_mp";
 
     zoneOriginStart = (0, 0, -700);
@@ -75,74 +75,88 @@ main()
     level.zoneStatic = spawn("script_model", zoneOriginStart);
     level.zone.angles = (-90, 0, 0); //DEPENDS ON MODELS TAG
     level.zone.modelTag = "bip01 spine2";
-    level.zone.objnum = 0;
+    level.zone.objectiveNum = 0;
+    
+    zoneStaticLife = 10000; // ms
+    index = 0;
 
     level.zone.modes = [];
-    level.zone.modes[0]["id"] = "start";
-    level.zone.modes[0]["fxId"] = loadFx("fx/zone-start.efx");
-    level.zone.modes[0]["startSize"] = "15000";
+    level.zone.modes[index]["id"] = "start";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone-start.efx");
+    level.zone.modes[index]["startSize"] = 15000;
 
-    level.zone.modes[1]["id"] = "start_1";
-    level.zone.modes[1]["fxId"] = loadFx("fx/zone-start_1.efx");
-    level.zone.modes[1]["life"] = "10000";
-    level.zone.modes[1]["startSize"] = level.zone.modes[1-1]["startSize"];
-    level.zone.modes[1]["endSize"] = "12000";
+    index++;
+    level.zone.modes[index]["id"] = "start_1";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone-start_1.efx");
+    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
+    level.zone.modes[index]["endSize"] = 12000;
 
-    level.zone.modes[2]["id"] = "1";
-    level.zone.modes[2]["fxId"] = loadFx("fx/zone1.efx");
-    level.zone.modes[2]["startSize"] = level.zone.modes[2-1]["endSize"];
+    index++;
+    level.zone.modes[index]["id"] = "1";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone1.efx");
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
-    level.zone.modes[3]["id"] = "1_2";
-    level.zone.modes[3]["fxId"] = loadFx("fx/zone1_2.efx");
-    level.zone.modes[3]["life"] = "10000";
-    level.zone.modes[3]["startSize"] = level.zone.modes[3-1]["startSize"];
-    level.zone.modes[3]["endSize"] = "9000";
+    index++;
+    level.zone.modes[index]["id"] = "1_2";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone1_2.efx");
+    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
+    level.zone.modes[index]["endSize"] = 9000;
 
-    level.zone.modes[4]["id"] = "2";
-    level.zone.modes[4]["fxId"] = loadFx("fx/zone2.efx");
-    level.zone.modes[4]["startSize"] = level.zone.modes[4-1]["endSize"];
+    index++;
+    level.zone.modes[index]["id"] = "2";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone2.efx");
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
-    level.zone.modes[5]["id"] = "2_3";
-    level.zone.modes[5]["fxId"] = loadFx("fx/zone2_3.efx");
-    level.zone.modes[5]["life"] = "10000";
-    level.zone.modes[5]["startSize"] = level.zone.modes[5-1]["startSize"];
-    level.zone.modes[5]["endSize"] = "6500";
+    index++;
+    level.zone.modes[index]["id"] = "2_3";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone2_3.efx");
+    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
+    level.zone.modes[index]["endSize"] = 6500;
 
-    level.zone.modes[6]["id"] = "3";
-    level.zone.modes[6]["fxId"] = loadFx("fx/zone3.efx");
-    level.zone.modes[6]["startSize"] = level.zone.modes[6-1]["endSize"];
+    index++;
+    level.zone.modes[index]["id"] = "3";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone3.efx");
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
-    level.zone.modes[7]["id"] = "3_4";
-    level.zone.modes[7]["fxId"] = loadFx("fx/zone3_4.efx");
-    level.zone.modes[7]["life"] = "10000";
-    level.zone.modes[7]["startSize"] = level.zone.modes[7-1]["startSize"];
-    level.zone.modes[7]["endSize"] = "4250";
+    index++;
+    level.zone.modes[index]["id"] = "3_4";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone3_4.efx");
+    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
+    level.zone.modes[index]["endSize"] = 4250;
 
-    level.zone.modes[8]["id"] = "4";
-    level.zone.modes[8]["fxId"] = loadFx("fx/zone4.efx");
-    level.zone.modes[8]["startSize"] = level.zone.modes[8-1]["endSize"];
+    index++;
+    level.zone.modes[index]["id"] = "4";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone4.efx");
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
-    level.zone.modes[9]["id"] = "4_5";
-    level.zone.modes[9]["fxId"] = loadFx("fx/zone4_5.efx");
-    level.zone.modes[9]["life"] = "10000";
-    level.zone.modes[9]["startSize"] = level.zone.modes[9-1]["startSize"];
-    level.zone.modes[9]["endSize"] = "2000";
+    index++;
+    level.zone.modes[index]["id"] = "4_5";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone4_5.efx");
+    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
+    level.zone.modes[index]["endSize"] = 2000;
 
-    level.zone.modes[10]["id"] = "5";
-    level.zone.modes[10]["fxId"] = loadFx("fx/zone5.efx");
-    level.zone.modes[10]["startSize"] = level.zone.modes[10-1]["endSize"];
+    index++;
+    level.zone.modes[index]["id"] = "5";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone5.efx");
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
-    level.zone.modes[11]["id"] = "5_end";
-    level.zone.modes[11]["fxId"] = loadFx("fx/zone5_end.efx");
-    level.zone.modes[11]["life"] = "10000";
-    level.zone.modes[11]["startSize"] = level.zone.modes[11-1]["startSize"];
-    level.zone.modes[11]["endSize"] = "0";
+    index++;
+    level.zone.modes[index]["id"] = "5_end";
+    level.zone.modes[index]["fxId"] = loadFx("fx/zone5_end.efx");
+    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
+    level.zone.modes[index]["endSize"] = 0;
 
     level.camouflages = [];
-    level.camouflages[0] = "american";
-    level.camouflages[1] = "british";
-    level.camouflages[2] = "german";
-    level.camouflages[3] = "russian";
+    level.camouflages[level.camouflages.size] = "american";
+    level.camouflages[level.camouflages.size] = "british";
+    level.camouflages[level.camouflages.size] = "german";
+    level.camouflages[level.camouflages.size] = "russian";
 
     level.crate_efx = loadFx("fx/crate_weapons.efx");
 
@@ -153,12 +167,7 @@ main()
     level.checkingVictoryRoyale = false;
     level.noWinner = false;
 
-    level.healthqueue = [];
-    level.healthqueuecurrent = 0;
-
     level.color_red = (1, 0, 0);
-    level.color_blue = (0, 0, 1);
-    level.color_green = (0, 1, 0);
 
     setArchive(true);
 
@@ -174,7 +183,7 @@ Callback_StartGameType()
         game["layoutimage"] = "default";
     layoutname = "levelshots/layouts/hud@layout_" + game["layoutimage"];
     precacheShader(layoutname);
-    setcvar("scr_layoutimage", layoutname);
+    setCvar("scr_layoutimage", layoutname);
     makeCvarServerInfo("scr_layoutimage", "");
 
     // Menus
@@ -259,9 +268,9 @@ Callback_StartGameType()
 
     setClientNameMode("auto_change");
 
-    objective_add(level.zone.objnum, "current", level.zone.origin, "gfx/hud/zone_center.dds");
-    objective_onEntity(level.zone.objnum, level.zone);
-    objective_team(level.zone.objnum, "none");
+    objective_add(level.zone.objectiveNum, "current", level.zone.origin, "gfx/hud/zone_center.dds");
+    objective_onEntity(level.zone.objectiveNum, level.zone);
+    objective_team(level.zone.objectiveNum, "none");
     level.zone setModel(level.model_zone);
     level.zoneStatic setModel(level.model_zone);
     
@@ -269,7 +278,7 @@ Callback_StartGameType()
     thread checkBattleReady();
     thread addBotClients();
 
-    // Calling getEnt on crates triggers before starting battle for faster debugging
+    // Calling getEnt for crates triggers before starting battle for faster debugging
     triggers_crates_load();
 
     mapCredit = newHudElem();
@@ -477,8 +486,6 @@ Callback_PlayerKilled(eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vD
             eAttacker.score++;
         }
     }
-
-    self dropHealth();
     body = self cloneplayer();
 
     timeToWaitAfterDeath = 2; // Delay the player becoming a spectator
@@ -506,7 +513,7 @@ spawnSpectator(origin, angles, died)
     self notify("spawned");
     self notify("spawned_spectator");
 
-    resettimeout();
+    resetTimeout();
 
     if (!isDefined(died))
     {
@@ -542,7 +549,7 @@ spawnPlayer(origin, angles)
 {
     self notify("spawned");
 
-    resettimeout();
+    resetTimeout();
 
     self.sessionteam = "none";
     self.sessionstate = "playing";
@@ -977,6 +984,9 @@ crateSpawnStuff()
         spawnOrigin = (spawnOrigin[0], spawnOrigin[1], self.origin[2] + 3); // self.origin[2] seems not enough on some surfaces.
 
     //printLn("################ spawnOrigin: " + spawnOrigin);
+
+    self playsound("crate_open");
+
     for(i = 0; i < stuff.size; i++)
     {
         spawnedStuff = spawn(stuff[i], spawnOrigin + (randomInt(10), randomInt(10), 0));
@@ -997,18 +1007,17 @@ manageZoneLifecycle()
     thread setupZone(zoneIndex);
 
     level waittill("battle_start");
+
     zoneIndex++; // In plane, start zone is shrinking
     thread setupZone(zoneIndex);
 
     for(;;)
     {
-        level waittill("zone_idle");
+        level waittill("zone_static_started");
         wait level.zoneDuration;
 
         zoneIndex += 2;
         thread setupZone(zoneIndex);
-        
-        wait .05;
     }
 }
 setupZone(zoneModeIndex)
@@ -1018,7 +1027,7 @@ setupZone(zoneModeIndex)
     if (!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) // Static zone
     {
         level.zone.indexMode = zoneModeIndex;
-        level.zone.currentSize = (int)level.zone.modes[zoneModeIndex]["startSize"];
+        level.zone.currentSize = level.zone.modes[zoneModeIndex]["startSize"];
         level thread playZone(level.zone.modes[zoneModeIndex]["fxId"], true);
 
         if (zoneModeIndex != 0) // Start zone is active, there is no countdown.
@@ -1034,7 +1043,7 @@ setupZone(zoneModeIndex)
             level.hud_zoneShrinkAlert.label = level.text_zoneWillShrink;
             level.hud_zoneShrinkAlert setTimer(level.zoneDuration);
 
-            level notify("zone_idle");
+            level notify("zone_static_started");
         }
     }
     else // Shrinking zone
@@ -1052,10 +1061,10 @@ setupZone(zoneModeIndex)
         level.zoneStatic.angles = (0 - level.zone.angles[0], level.zone.angles[1], level.zone.angles[2]);
         
         level.zone.indexMode = zoneModeIndex;
-        level.zone.life = (int)level.zone.modes[zoneModeIndex]["life"];
-        level.zone.startSize = (int)level.zone.modes[zoneModeIndex]["startSize"];
+        level.zone.life = level.zone.modes[zoneModeIndex]["life"];
+        level.zone.startSize = level.zone.modes[zoneModeIndex]["startSize"];
         level.zone.currentSize = level.zone.startSize;
-        level.zone.endSize = (int)level.zone.modes[zoneModeIndex]["endSize"];
+        level.zone.endSize = level.zone.modes[zoneModeIndex]["endSize"];
         level.zone.nextZoneIndex = level.zone.indexMode + 1;
         level.zone thread playZone(level.zone.modes[zoneModeIndex]["fxId"], false);
         level.zone thread keepZoneSizeVarUpdated();
@@ -1065,12 +1074,20 @@ setupZone(zoneModeIndex)
         y = level.hud_zoneShrinkAlert.y;
         fontScale = level.hud_zoneShrinkAlert.fontScale;
         level.hud_zoneShrinkAlert reset();
+
         level.hud_zoneShrinkAlert.x = x;
         level.hud_zoneShrinkAlert.y = y;
         level.hud_zoneShrinkAlert.fontScale = fontScale;
         level.hud_zoneShrinkAlert.color = level.color_red;
         level.hud_zoneShrinkAlert.label = level.text_zoneIsShrinking;
         level.hud_zoneShrinkAlert setTimer(level.zone.life / 1000);
+
+        if(zoneModeIndex == 1)
+            return; // No shrink sound alert when in plane
+
+        players = getEntArray("player", "classname");
+        for(i = 0; i < players.size; i++)
+            players[i] playLocalSound("shrink_start");
     }
 
     level.zone.active = true;
@@ -1078,7 +1095,7 @@ setupZone(zoneModeIndex)
 playZone(fx, static)
 {
     //printLnBR("playZone");
-
+    
     if (static)
     {
         /*
@@ -1110,7 +1127,7 @@ playZone(fx, static)
         playFXOnTag(fx, self, self.modelTag);
         moveZone();
         
-        if (self.indexMode != self.modes.size - 1) 
+        if (self.indexMode != self.modes.size - 1)
         {
             wait (self.life / 1000);
             // Play next static zone
@@ -1120,13 +1137,13 @@ playZone(fx, static)
         else
         {
             // Final zone, will shrinks fully, will play nothing after.
-            printLnBR("playZone FINAL");
+            //printLnBR("playZone FINAL");
 
             wait (self.life / 1000);
             // Destroy HUD and zone objective on compass
             wait 0.5;
             level.hud_zoneShrinkAlert destroy();
-            objective_delete(level.zone.objnum);
+            objective_delete(level.zone.objectiveNum);
         }
     }
 }
@@ -1170,7 +1187,7 @@ keepZoneSizeVarUpdated()
     while(currentTime - startTime < self.life)
     {
         progress = (float)(currentTime - startTime) / self.life;
-        currentSize = self.startSize + (int)((self.endSize - self.startSize) * progress);
+        currentSize = self.startSize + ((self.endSize - self.startSize) * progress);
         self.currentSize = currentSize;
         wait .05;
         currentTime = getTime();
@@ -2742,19 +2759,6 @@ playerWillDie(damage)
     return false;
 }
 
-dropHealth()
-{
-    if(isDefined(level.healthqueue[level.healthqueuecurrent]))
-        level.healthqueue[level.healthqueuecurrent] delete();
-    
-    level.healthqueue[level.healthqueuecurrent] = spawn("item_health", self.origin + (0, 0, 1));
-    level.healthqueue[level.healthqueuecurrent].angles = (0, randomint(360), 0);
-
-    level.healthqueuecurrent++;
-    
-    if(level.healthqueuecurrent >= 16)
-        level.healthqueuecurrent = 0;
-}
 dropWeapons()
 {
     // Calling this func in Callback_PlayerKilled seems to late.

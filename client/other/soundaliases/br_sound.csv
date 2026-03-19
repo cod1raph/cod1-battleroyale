@@ -16,5 +16,8 @@
 
 name,sequence,file,vol_min,vol_max,pitch_min,pitch_max,dist_min,dist_max,channel,type,probability,loop,masterslave,loadspec,subtitle
 
+#Above comment says 1 is full volume but it seems false,,,,,,,,,,,,,,
 
-in_plane,,vehicles/condor_move.wav,0.75,1,,,1000,,voice,streamed,,looping,,
+in_plane,,vehicles/condor_move.wav,0.8,,,,1000,,voice,streamed,,looping,,
+shrink_start,,shrink_start.wav,3,,,,,,announcer,streamed,,,,,
+crate_open,,crate_open.wav,1,,,,150,2000,,,,,,
