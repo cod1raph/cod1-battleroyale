@@ -55,7 +55,7 @@ main()
     if(getCvarInt("br_zoneDuration"))
         level.zoneDuration = getCvarInt("br_zoneDuration");
     
-    level.crateOpeningDuration = 3;
+    level.crateOpeningDuration = 2.5;
     if(getCvarFloat("br_crateOpeningDuration"))
         level.crateOpeningDuration = getCvarFloat("br_crateOpeningDuration");
     level.crateOpeningBarSize = 288;
@@ -167,6 +167,9 @@ main()
     level.checkingVictoryRoyale = false;
     level.noWinner = false;
 
+    level.prefix_trigger_crate = "trigger_crate_";
+    level.prefix_script_model_crate = "script_model_crate_";
+
     level.color_red = (1, 0, 0);
 
     setArchive(true);
@@ -256,10 +259,7 @@ Callback_StartGameType()
     precacheItem("rgd-33russianfrag_mp");
     // Items
     precacheItem("item_health");
-    precacheItem("item_health_small");
     precacheItem("item_health_large");
-    precacheItem("item_ammo_stielhandgranate_closed");
-    precacheItem("item_ammo_stielhandgranate_open");
     // Custom
     precacheItem(level.startWeapon);
     precacheItem(level.parachute_deployed_hands);
@@ -278,8 +278,8 @@ Callback_StartGameType()
     thread checkBattleReady();
     thread addBotClients();
 
-    // Calling getEnt for crates triggers before starting battle for faster debugging
-    triggers_crates_load();
+    // Calling getEnt for crates before starting battle for faster debugging
+    crates_load();
 
     mapCredit = newHudElem();
     mapCredit.x = 1;
@@ -741,7 +741,7 @@ startBattle()
     level.hud_numLivingPlayers.label = &"Alive: ";
     thread updateNumLivingPlayers();
 
-    triggers_crates_setup();
+    crates_setup();
 
     originPlane = (-1520, 12000, 7000);
     anglesPlane = (0, -90, 0);
@@ -825,15 +825,17 @@ startBattle()
 }
 
 //// Weapon crates
-triggers_crates_load()
+crates_load()
 {
-    level.weaponCrates = [];
+    level.weaponCrates_triggers = [];
+    level.weaponCrates_models = [];
+
     entArray = getEntArray();
     for(i = 0; i < entArray.size; i++)
     {
         if (isDefined(entArray[i].targetname))
         {
-            if (starts_with(entArray[i].targetname, "trigger_crate_"))
+            if (isSubStr(entArray[i].targetname, level.prefix_trigger_crate))
             {
                 /*
                 If there is 2 or more entities with same targetname, you will get error:
@@ -841,21 +843,27 @@ triggers_crates_load()
                 Uncomment the below printLn, the last targetname will be the one to fix.
                 You could find it in Radiant: Edit > Entity Info
                 */
-                //printLn("######## getEnt for: " + entArray[i].targetname);
-                level.weaponCrates[level.weaponCrates.size] = getEnt(entArray[i].targetname, "targetname");
+                //printLnBR("getEnt for: " + entArray[i].targetname);
+                trigger_crate = getEnt(entArray[i].targetname, "targetname");
+                level.weaponCrates_triggers[level.weaponCrates_triggers.size] = trigger_crate;
+            }
+            else if (isSubStr(entArray[i].targetname, level.prefix_script_model_crate))
+            {
+                //printLnBR("getEnt for: " + entArray[i].targetname);
+                model_crate = getEnt(entArray[i].targetname, "targetname");
+                level.weaponCrates_models[level.weaponCrates_models.size] = model_crate;
             }
         }
     }
 }
-triggers_crates_setup()
+crates_setup()
 {
-    for(i = 0; i < level.weaponCrates.size; i++)
-    {
-        level.weaponCrates[i] thread trigger_crate_monitor();
-        level.weaponCrates[i] thread trigger_crate_efx();
-    }
+    for(i = 0; i < level.weaponCrates_triggers.size; i++)
+        level.weaponCrates_triggers[i] thread crate_trigger_think();
+    for(i = 0; i < level.weaponCrates_models.size; i++)
+        level.weaponCrates_models[i] thread crate_efx();
 }
-trigger_crate_monitor()
+crate_trigger_think()
 {
     for(;;)
     {
@@ -876,7 +884,7 @@ trigger_crate_monitor()
             
             while(entity isTouching(self) && isAlive(entity) && entity useButtonPressed())
             {
-                entity notify("kill_check_trigger_crate");
+                entity notify("kill_crate_trigger_check");
 
                 if (!isDefined(entity.progressbackground))
                 {
@@ -915,11 +923,16 @@ trigger_crate_monitor()
                     entity.progressbackground destroy();
                     entity.progressbar destroy();
 
-                    self notify("stop_efx_trigger_crate");
+                    // Get the crate script_model
+                    trigger_crate_id = getSubStr(self.targetname, level.prefix_trigger_crate.size);
+                    modelTargetName = level.prefix_script_model_crate + trigger_crate_id;
+                    //printLnBR("getEnt for: " + modelTargetName);
+                    entScriptModelCrate = getEnt(modelTargetName, "targetname");
+                    entScriptModelCrate notify("crate_efx_stop");
                     
-                    self delete();
+                    self delete(); // Delete the trigger
                     
-                    entity crateSpawnStuff();
+                    level crate_spawn_stuff(entScriptModelCrate);
                     
                     return;
                 }
@@ -933,14 +946,14 @@ trigger_crate_monitor()
                 wait .05;
             }
             
-            entity thread check_trigger_crate(self);
+            entity thread crate_trigger_check(self);
         }
     }
 }
-check_trigger_crate(trigger)
+crate_trigger_check(trigger)
 {
-    self notify("kill_check_trigger_crate");
-    self endon("kill_check_trigger_crate");
+    self notify("kill_crate_trigger_check");
+    self endon("kill_crate_trigger_check");
 
     while(isDefined(trigger) && self isTouching(trigger) && isAlive(self))
         wait 0.05;
@@ -948,48 +961,60 @@ check_trigger_crate(trigger)
     if(isDefined(self.triggerIcon))
         self.triggerIcon destroy();
 }
-trigger_crate_efx()
+crate_efx()
 {
     life = 2;
-    ent = playLoopedFX(level.crate_efx, life, self.origin + (0, 0, 20));
-    self waittill("stop_efx_trigger_crate");
+    entFx = playLoopedFX(level.crate_efx, life, self.origin + (0, 0, 20));
+    self waittill("crate_efx_stop");
     /*
     The efx will disappear after its life completes,
     using a small life so it doesn't take too long to disappear,
     but not too small to make "blinks" less frequent.
     */
-    ent delete();
+    entFx delete();
 }
-crateSpawnStuff()
+crate_spawn_stuff(entScriptModelCrate)
 {
-    stuff = [];
-    stuff[stuff.size] = randomPrimary();
-    stuff[stuff.size] = randomPrimary();
-    stuff[stuff.size] = randomSecondary();
-    stuff[stuff.size] = randomGrenade();
-    stuff[stuff.size] = randomItem();
+    //printLnBR("testOrigin origin: " + entScriptModelCrate.origin);
+    //printLnBR("testOrigin angles: " + entScriptModelCrate.angles);
+    forwardDirection = anglesToForward(entScriptModelCrate.angles);
+    rightDirection = anglesToRight(entScriptModelCrate.angles);
+    leftDirection = anglesToLeft(entScriptModelCrate.angles);
+    forward_right = vectorNormalize(forwardDirection + rightDirection);
+    forward_left = vectorNormalize(forwardDirection + leftDirection);
     
-    viewOrigin = self getViewOrigin();
-    //printLn("################ viewOrigin: " + viewOrigin);
-    // Lower z a bit not to disturb player's eyesight
-    viewOrigin = (viewOrigin[0], viewOrigin[1], viewOrigin[2] - 10);
-
-    playerAngles = self getPlayerAngles();
-    forwardDirection = anglesToForward(playerAngles);
-    scale_amount = 15; // Higher value = more distant in front
-    spawnOrigin = viewOrigin + maps\mp\_utility::vectorScale(forwardDirection, scale_amount);
-
-    // Clamp z to prevent spawning below player
-    if(spawnOrigin[2] <= self.origin[2])
-        spawnOrigin = (spawnOrigin[0], spawnOrigin[1], self.origin[2] + 3); // self.origin[2] seems not enough on some surfaces.
-
-    //printLn("################ spawnOrigin: " + spawnOrigin);
-
-    self playsound("crate_open");
-
+    stuff = [];
+    stuff[0]["stuff"] = randomPrimary();
+    stuff[0]["direction"] = forward_left;
+    stuff[1]["stuff"] = randomPrimary();
+    stuff[1]["direction"] = forward_right;
+    
+    switch(randomInt(5))
+    {
+        case 0:
+            stuff[2]["stuff"] = randomSecondary();
+        break;
+        
+        case 1:
+            stuff[2]["stuff"] = randomGrenade();
+        break;
+        
+        // More odds for health
+        case 2:
+        case 3:
+        case 4:
+            stuff[2]["stuff"] = randomHealth();
+        break;
+    }
+    stuff[2]["direction"] = forwardDirection;
+    
+    entScriptModelCrate playsound("crate_open");
+    
     for(i = 0; i < stuff.size; i++)
     {
-        spawnedStuff = spawn(stuff[i], spawnOrigin + (randomInt(10), randomInt(10), 0));
+        scale = 40; // Higher value = higher distance from crate.
+        origin = entScriptModelCrate.origin + maps\mp\_utility::vectorScale(stuff[i]["direction"], scale);
+        spawnedStuff = spawn(stuff[i]["stuff"], origin + (0, 0, 10));
         spawnedStuff.angles = (0, randomInt(360), 0);
     }
 }
@@ -1084,7 +1109,10 @@ setupZone(zoneModeIndex)
 
         if(zoneModeIndex == 1)
             return; // No shrink sound alert when in plane
-
+            
+        if(level.battleOver)
+            return;
+            
         players = getEntArray("player", "classname");
         for(i = 0; i < players.size; i++)
             players[i] playLocalSound("shrink_start");
@@ -2716,14 +2744,11 @@ randomGrenade()
     random[random.size] = "mpweapon_fraggrenade";
     return random[randomInt(random.size)];
 }
-randomItem()
+randomHealth()
 {
     random = [];
-    random[random.size] = "item_ammo_stielhandgranate_closed";
-    random[random.size] = "item_ammo_stielhandgranate_open";
     random[random.size] = "item_health";
     random[random.size] = "item_health_large";
-    random[random.size] = "item_health_small";
     return random[randomInt(random.size)];
 }
 
