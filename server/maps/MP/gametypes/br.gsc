@@ -6,15 +6,21 @@ main()
     level.callbackPlayerDamage = ::Callback_PlayerDamage;
     level.callbackPlayerKilled = ::Callback_PlayerKilled;
     maps\mp\gametypes\_callbacksetup::SetupCallbacks();
-
-    nearDistance = 0; // Distance from the camera that the fog will start
-    farDistance = 13000; // Distance from the camera that full occlusion will occur
-    red = 0.8;
-    green = 0.8;
-    blue = 0.8;
+    
+    level.expFogStruct = spawnStruct();
+    level.expFogStruct.density = 0.000025;
+    level.expFogStruct.red = 255/255;
+    level.expFogStruct.green = 255/255;
+    level.expFogStruct.blue = 255/255;
     transitionTime = 0;
-    setCullFog(nearDistance, farDistance, red, green, blue, transitionTime);
-    ambientPlay("ambient_mp_harbor");
+    setExpFog(
+        level.expFogStruct.density,
+        level.expFogStruct.red,
+        level.expFogStruct.green,
+        level.expFogStruct.blue,
+        transitionTime);
+        
+    ambientPlay("ambient_mp_depot");
     game["layoutimage"] = "zh_elusive";
 
     level.objectiveText = "Be the last survivor.";
@@ -596,7 +602,7 @@ spawnIntermission()
     self notify("spawned");
     self notify("end_respawn");
     
-    resettimeout();
+    resetTimeout();
 
     self.sessionstate = "intermission";
     self.spectatorclient = -1;
@@ -1236,17 +1242,11 @@ checkPlayerInZone()
 
     for(;;)
     {
-        if(level.zone.active)
+        if (level.zone.active)
         {
-            //IGNORE Z
-            selfOriginX = self.origin[0];
-            selfOriginY = self.origin[1];
-            selfOriginNoZ = (selfOriginX, selfOriginY, 0);
-
-            zoneOriginX = level.zone.origin[0];
-            zoneOriginY = level.zone.origin[1];
-            zoneOriginNoZ = (zoneOriginX, zoneOriginY, 0);
-
+            // Ignore z for distance check
+            selfOriginNoZ = (self.origin[0], self.origin[1], 0);
+            zoneOriginNoZ = (level.zone.origin[0], level.zone.origin[1], 0);
             inZone = (distance(selfOriginNoZ, zoneOriginNoZ) < level.zone.currentSize);
             if (inZone && !self.inZone)
             {
@@ -1254,9 +1254,14 @@ checkPlayerInZone()
                 self.inZone = true;
                 self.hudInStormAlert setText(&"");
                 
-                // Reset fog //TODO: Check if can use 0/real reset instead of setting small value.
-                transitionTime = 0.33;
-                self setExpFogForPlayer(0.0000001, 0, 0, 0, transitionTime);
+                // Reset fog
+                transitionTime = 0.25;
+                self setExpFogForPlayer(
+                    level.expFogStruct.density,
+                    level.expFogStruct.red,
+                    level.expFogStruct.green,
+                    level.expFogStruct.blue,
+                    transitionTime);
             }
             else if (!inZone)
             {
@@ -1266,12 +1271,12 @@ checkPlayerInZone()
                     self.inZone = false;
                     self.hudInStormAlert setText(&"You are in the storm!");
                     
-                    // Using the same color as the zone
-                    red   = 0.145;
-                    green = 0.133;
-                    blue  = 0.247;
-                    transitionTime = 1;
-                    self setExpFogForPlayer(0.0005, red, green, blue, transitionTime);
+                    density = level.expFogStruct.density * 20;
+                    red = 0/255;
+                    green = 0/255;
+                    blue = 0/255;
+                    transitionTime = 0.5;
+                    self setExpFogForPlayer(density, red, green, blue, transitionTime);
                 }
 
                 if (level.battleOver)
@@ -1295,29 +1300,22 @@ checkPlayerInZone()
                 if (damagePlayer)
                 {
                     iDamage = 5;
-
-                    if (self playerWillDie(iDamage))
-                    {
+                    
+                    if(self playerWillDie(iDamage))
                         self dropWeapons();
                         
-                        eInflictor = level.zone;
-                        eAttacker = level.zone;
-                        iDamage = 5;
-                        iDFlags = 0;
-                        sMeansOfDeath = "MOD_UNKNOWN";
-                        sWeapon = "none";
-                        vPoint = undefined;
-                        vDir = undefined;
-                        sHitLoc = "none";
-                        psOffsetTime = 0;
-                        self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, psOffsetTime);
-                    }
-                    else
-                    {
-                        // Avoiding call to finishPlayerDamage so the camera doesn't kicked (vDir 0,0,0 doesn't give desired result).
-                        // Calling finishPlayerDamage for final hit, so Callback_PlayerKilled could know the zone did it.
-                        self.health -= 5;
-                    }
+                    eInflictor = level.zone;
+                    eAttacker = level.zone;
+                    iDamage = 5;
+                    iDFlags = 0;
+                    sMeansOfDeath = "MOD_UNKNOWN";
+                    sWeapon = "none";
+                    vPoint = undefined;
+                    vDir = undefined;
+                    sHitLoc = "none";
+                    psOffsetTime = 0;
+                    self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc, psOffsetTime);
+
                     self.lastZoneDamageTime = getTime();
                 }
             }
@@ -1882,7 +1880,12 @@ endMap(timeWaitedAfterDeath, playerEntity)
         player spawnIntermission();
     }
     wait 3;
-    exitLevel(false);
+    /*
+    CoD1.1 might have an issue about the server getting stuck on scoreboard after calling exitLevel,
+    MiscMod seems to have some fix for it, see: https://github.com/cato-a/CoDaM_MiscMod/blob/88d6e7cae513080e30f2599972b67a85fd6e61d1/___CoDaM_MiscMod/codam/miscmod.gsc#L250
+    Now replacing exitLevel by map_restart hoping it will not occur again.
+    */
+    map_restart(false);
 }
 
 showDamageFeedback()
