@@ -86,84 +86,86 @@ main()
     
     index = 0;
     level.zone.modes = [];
-    level.zone.modes[index]["id"] = "start";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone-start.efx");
+    // Store file path for debugging, will call loadFx using it.
+    level.zone.modes[index]["filePath"] = "fx/zone-start.efx";
     level.zone.modes[index]["startSize"] = 15000;
 
     index++;
-    level.zone.modes[index]["id"] = "start_1";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone-start_1.efx");
-    level.zone.modes[index]["life"] = 15000;
+    level.zone.modes[index]["filePath"] = "fx/zone-start_1.efx";
+    level.zone.modes[index]["life"] = 10000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 12000;
 
     index++;
-    level.zone.modes[index]["id"] = "1";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone1.efx");
+    level.zone.modes[index]["filePath"] = "fx/zone1.efx";
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
     index++;
-    level.zone.modes[index]["id"] = "1_2";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone1_2.efx");
-    level.zone.modes[index]["life"] = 10000;
+    level.zone.modes[index]["filePath"] = "fx/zone1_2.efx";
+    level.zone.modes[index]["life"] = 15000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 9000;
 
     index++;
-    level.zone.modes[index]["id"] = "2";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone2.efx");
+    level.zone.modes[index]["filePath"] = "fx/zone2.efx";
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
     index++;
-    level.zone.modes[index]["id"] = "2_3";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone2_3.efx");
-    level.zone.modes[index]["life"] = 10000;
+    level.zone.modes[index]["filePath"] = "fx/zone2_3.efx";
+    level.zone.modes[index]["life"] = 15000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 6500;
 
     index++;
-    level.zone.modes[index]["id"] = "3";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone3.efx");
+    level.zone.modes[index]["filePath"] = "fx/zone3.efx";
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
     index++;
-    level.zone.modes[index]["id"] = "3_4";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone3_4.efx");
-    level.zone.modes[index]["life"] = 10000;
+    level.zone.modes[index]["filePath"] = "fx/zone3_4.efx";
+    level.zone.modes[index]["life"] = 15000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 4250;
 
     index++;
-    level.zone.modes[index]["id"] = "4";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone4.efx");
+    level.zone.modes[index]["filePath"] = "fx/zone4.efx";
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
     index++;
-    level.zone.modes[index]["id"] = "4_5";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone4_5.efx");
-    level.zone.modes[index]["life"] = 10000;
+    level.zone.modes[index]["filePath"] = "fx/zone4_5.efx";
+    level.zone.modes[index]["life"] = 15000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 2000;
 
     index++;
-    level.zone.modes[index]["id"] = "5";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone5.efx");
+    level.zone.modes[index]["filePath"] = "fx/zone5.efx";
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
 
     index++;
-    level.zone.modes[index]["id"] = "5_end";
-    level.zone.modes[index]["fxId"] = loadFx("fx/zone5_end.efx");
-    level.zone.modes[index]["life"] = 10000;
+    level.zone.modes[index]["filePath"] = "fx/zone5_6.efx";
+    level.zone.modes[index]["life"] = 15000;
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
+    level.zone.modes[index]["endSize"] = 800;
+
+    index++;
+    level.zone.modes[index]["filePath"] = "fx/zone6.efx";
+    level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["endSize"];
+
+    index++;
+    level.zone.modes[index]["filePath"] = "fx/zone6_end.efx";
+    level.zone.modes[index]["life"] = 15000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 0;
-
+    
+    for(i = 0; i < level.zone.modes.size; i++)
+        level.zone.modes[i]["fxId"] = loadFx(level.zone.modes[i]["filePath"]);
+    
     level.camouflages = [];
     level.camouflages[level.camouflages.size] = "american";
     level.camouflages[level.camouflages.size] = "british";
     level.camouflages[level.camouflages.size] = "german";
     level.camouflages[level.camouflages.size] = "russian";
 
-    level.crate_efx = loadFx("fx/crate_weapons.efx");
+    level.crate_efxId = loadFx("fx/crate_weapons.efx");
 
     level.zone.active = false;
     level.startingBattle = false;
@@ -977,7 +979,7 @@ crate_trigger_check(trigger)
 crate_efx()
 {
     life = 2;
-    entFx = playLoopedFX(level.crate_efx, life, self.origin + (0, 0, 20));
+    entFx = playLoopedFX(level.crate_efxId, life, self.origin + (0, 0, 20));
     self waittill("crate_efx_stop");
     /*
     The efx will disappear after its life completes,
@@ -1068,7 +1070,13 @@ manageZoneLifecycle()
 }
 setupZone(zoneModeIndex)
 {
-    //printLnBR("setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
+    /*fxDir = "fx/";
+    fxExt = ".efx";
+    fxFileName = getSubStr(level.zone.modes[zoneModeIndex]["filePath"], fxDir.size, level.zone.modes[zoneModeIndex]["filePath"].size - fxExt.size);
+    debugMessage = "setupZone: " + fxFileName;
+    if(isDefined(level.zone.modes[zoneModeIndex]["life"]))
+        debugMessage += ", life: " + level.zone.modes[zoneModeIndex]["life"] + "ms";
+    printLnBR(debugMessage);*/
     
     if (!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) // Static zone
     {

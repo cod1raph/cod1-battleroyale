@@ -11,15 +11,15 @@ Cylinder
 
 	size
 	{
-		start			12000
-		end				9000
+		start			800
+		end				0
 		flags			linear
 	}
 
 	size2
 	{
-		start			12000
-		end				9000
+		start			800
+		end				0
 		flags			linear
 	}
 

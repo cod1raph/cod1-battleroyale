@@ -1,10 +1,8 @@
 Cylinder
 {
-	name				zone4_5
-
 	flags				useAlpha relative
 
-	life				10000
+	life				15000
 
 	alpha
 	{

@@ -1,7 +1,5 @@
 Cylinder
 {
-	name				zone5
-
 	flags				useAlpha relative
 
 	life				10000
