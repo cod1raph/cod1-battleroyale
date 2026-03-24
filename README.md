@@ -1,4 +1,5 @@
 > [!IMPORTANT]
+> 3/24/2026  
 > Renamed `br_zoneDuration` cvar to `br_staticZoneDuration`
 
 # CoD 1.1 Battle Royale gametype
