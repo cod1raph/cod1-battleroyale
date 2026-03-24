@@ -57,9 +57,9 @@ main()
     if(getCvarInt("br_damagefeedback"))
         level.damageFeedback = true;
     
-    level.zoneDuration = 60;
-    if(getCvarInt("br_zoneDuration"))
-        level.zoneDuration = getCvarInt("br_zoneDuration");
+    level.staticZoneDuration = 60;
+    if(getCvarInt("br_staticZoneDuration"))
+        level.staticZoneDuration = getCvarInt("br_staticZoneDuration");
     
     level.crateOpeningDuration = 2.5;
     if(getCvarFloat("br_crateOpeningDuration"))
@@ -67,25 +67,24 @@ main()
     level.crateOpeningBarSize = 288;
     
     // Model paths
-    level.model_zone = "xmodel/playerhead_default"; // TODO: Use a custom model instead.
+    level.model_zone = "xmodel/playerhead_default"; // TODO: Use a custom model instead
     level.model_plane = "xmodel/vehicle_german_condor";
     level.model_parachute = "xmodel/bx_parachute";
     
     // Weapon names
-    // TODO: Check if can show hands/parachute handles without using a weapon file.
-    level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to indicate deployment.
+    // TODO: Check if can show hands/parachute handles without using a weapon file
+    level.parachute_deployed_hands = "br_parachute_mp"; // Weapon file used to indicate parachute deployment
     level.startWeapon = "knife_mp";
 
     zoneOriginStart = (0, 0, -700);
     level.zone = spawn("script_model", zoneOriginStart);
     level.zoneStatic = spawn("script_model", zoneOriginStart);
+    level.zoneStatic.life = 10000; // ms
     level.zone.angles = (-90, 0, 0); //DEPENDS ON MODELS TAG
     level.zone.modelTag = "bip01 spine2";
     level.zone.objectiveNum = 0;
     
-    zoneStaticLife = 10000; // ms
     index = 0;
-
     level.zone.modes = [];
     level.zone.modes[index]["id"] = "start";
     level.zone.modes[index]["fxId"] = loadFx("fx/zone-start.efx");
@@ -94,7 +93,7 @@ main()
     index++;
     level.zone.modes[index]["id"] = "start_1";
     level.zone.modes[index]["fxId"] = loadFx("fx/zone-start_1.efx");
-    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["life"] = 15000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 12000;
 
@@ -106,7 +105,7 @@ main()
     index++;
     level.zone.modes[index]["id"] = "1_2";
     level.zone.modes[index]["fxId"] = loadFx("fx/zone1_2.efx");
-    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["life"] = 10000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 9000;
 
@@ -118,7 +117,7 @@ main()
     index++;
     level.zone.modes[index]["id"] = "2_3";
     level.zone.modes[index]["fxId"] = loadFx("fx/zone2_3.efx");
-    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["life"] = 10000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 6500;
 
@@ -130,7 +129,7 @@ main()
     index++;
     level.zone.modes[index]["id"] = "3_4";
     level.zone.modes[index]["fxId"] = loadFx("fx/zone3_4.efx");
-    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["life"] = 10000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 4250;
 
@@ -142,7 +141,7 @@ main()
     index++;
     level.zone.modes[index]["id"] = "4_5";
     level.zone.modes[index]["fxId"] = loadFx("fx/zone4_5.efx");
-    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["life"] = 10000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 2000;
 
@@ -154,7 +153,7 @@ main()
     index++;
     level.zone.modes[index]["id"] = "5_end";
     level.zone.modes[index]["fxId"] = loadFx("fx/zone5_end.efx");
-    level.zone.modes[index]["life"] = zoneStaticLife;
+    level.zone.modes[index]["life"] = 10000;
     level.zone.modes[index]["startSize"] = level.zone.modes[index-1]["startSize"];
     level.zone.modes[index]["endSize"] = 0;
 
@@ -177,6 +176,7 @@ main()
     level.prefix_script_model_crate = "script_model_crate_";
 
     level.color_red = (1, 0, 0);
+    level.color_white = (1, 1, 1);
 
     setArchive(true);
 
@@ -215,6 +215,7 @@ Callback_StartGameType()
     precacheShader("gfx/hud/hud@mpflag_spectator.tga");
     precacheShader("gfx/hud/damage_feedback.dds");
     precacheShader("gfx/hud/zone_center.dds");
+    precacheShader("gfx/hud/icon_soldier.dds");
 
     // Status icons
     precacheStatusIcon("gfx/hud/hud@status_dead.tga");
@@ -741,10 +742,16 @@ startBattle()
     level.hud_playersReady destroy();
     level.hud_playersMin destroy();
 
-    level.hud_numLivingPlayers = newHudElem();
-    level.hud_numLivingPlayers.x = 640 - 55;
-    level.hud_numLivingPlayers.y = 80;
-    level.hud_numLivingPlayers.label = &"Alive: ";
+    level.hud_numLivingPlayersCount = newHudElem();
+    level.hud_numLivingPlayersCount.alignX = "right";
+    level.hud_numLivingPlayersCount.x = 640 - 15;
+    level.hud_numLivingPlayersCount.y = 80;
+    level.hud_numLivingPlayersCount.fontScale = 1.3;
+    
+    level.hud_numLivingPlayersIcon = newHudElem();
+    level.hud_numLivingPlayersIcon.y = level.hud_numLivingPlayersCount.y;
+    level.hud_numLivingPlayersIcon setShader("gfx/hud/icon_soldier.dds", 16, 16);
+    
     thread updateNumLivingPlayers();
 
     crates_setup();
@@ -883,8 +890,8 @@ crate_trigger_think()
                 entity.triggerIcon.alignX = "center";
                 entity.triggerIcon.alignY = "middle";
                 entity.triggerIcon.x = 320;
-                entity.triggerIcon.y = 350;
-                entity.triggerIcon.fontScale = 1.5;
+                entity.triggerIcon.y = 355;
+                entity.triggerIcon.fontScale = 1.4;
                 entity.triggerIcon setText(&"Hold ^1[{+activate}] ^7to open");
             }
             
@@ -1029,11 +1036,19 @@ crate_spawn_stuff(entScriptModelCrate)
 //// Zone
 manageZoneLifecycle()
 {
-    level.hud_zoneShrinkAlert = newHudElem();
-    level.hud_zoneShrinkAlert.x = 640 - 140;
-    level.hud_zoneShrinkAlert.y = 170;
-    level.hud_zoneShrinkAlert.fontScale = 1.1;
-
+    // Not using a single HudElem (.label + setTimer) so the timer doesn't move the text
+    level.hud_zoneShrinkAlertTimer = newHudElem();
+    level.hud_zoneShrinkAlertTimer.alignX = "right";
+    level.hud_zoneShrinkAlertTimer.x = 640 - 15;
+    level.hud_zoneShrinkAlertTimer.y = 112;
+    level.hud_zoneShrinkAlertTimer.fontScale = 1.1;
+    
+    level.hud_zoneShrinkAlertText = newHudElem();
+    level.hud_zoneShrinkAlertText.alignX = "right";
+    level.hud_zoneShrinkAlertText.x = level.hud_zoneShrinkAlertTimer.x - 30;
+    level.hud_zoneShrinkAlertText.y = level.hud_zoneShrinkAlertTimer.y;
+    level.hud_zoneShrinkAlertText.fontScale = level.hud_zoneShrinkAlertTimer.fontScale;
+    
     zoneIndex = 0; // Waiting for players
     thread setupZone(zoneIndex);
 
@@ -1045,7 +1060,7 @@ manageZoneLifecycle()
     for(;;)
     {
         level waittill("zone_static_started");
-        wait level.zoneDuration;
+        wait level.staticZoneDuration;
 
         zoneIndex += 2;
         thread setupZone(zoneIndex);
@@ -1054,26 +1069,20 @@ manageZoneLifecycle()
 setupZone(zoneModeIndex)
 {
     //printLnBR("setupZone: id = " + level.zone.modes[zoneModeIndex]["id"]);
-
+    
     if (!isDefined(level.zone.modes[zoneModeIndex]["endSize"])) // Static zone
     {
         level.zone.indexMode = zoneModeIndex;
         level.zone.currentSize = level.zone.modes[zoneModeIndex]["startSize"];
         level thread playZone(level.zone.modes[zoneModeIndex]["fxId"], true);
 
-        if (zoneModeIndex != 0) // Start zone is active, there is no countdown.
+        if (zoneModeIndex != 0) // Start zone is active, there is no countdown
         {
-            // Reset HUD
-            x = level.hud_zoneShrinkAlert.x;
-            y = level.hud_zoneShrinkAlert.y;
-            fontScale = level.hud_zoneShrinkAlert.fontScale;
-            level.hud_zoneShrinkAlert reset();
-            level.hud_zoneShrinkAlert.x = x;
-            level.hud_zoneShrinkAlert.y = y;
-            level.hud_zoneShrinkAlert.fontScale = fontScale;
-            level.hud_zoneShrinkAlert.label = level.text_zoneWillShrink;
-            level.hud_zoneShrinkAlert setTimer(level.zoneDuration);
-
+            level.hud_zoneShrinkAlertText.color = level.color_white;
+            level.hud_zoneShrinkAlertTimer.color = level.color_white;
+            level.hud_zoneShrinkAlertText setText(level.text_zoneWillShrink);
+            level.hud_zoneShrinkAlertTimer setTimer(level.staticZoneDuration);
+            
             level notify("zone_static_started");
         }
     }
@@ -1099,19 +1108,11 @@ setupZone(zoneModeIndex)
         level.zone.nextZoneIndex = level.zone.indexMode + 1;
         level.zone thread playZone(level.zone.modes[zoneModeIndex]["fxId"], false);
         level.zone thread keepZoneSizeVarUpdated();
-
-        // Reset HUD
-        x = level.hud_zoneShrinkAlert.x;
-        y = level.hud_zoneShrinkAlert.y;
-        fontScale = level.hud_zoneShrinkAlert.fontScale;
-        level.hud_zoneShrinkAlert reset();
-
-        level.hud_zoneShrinkAlert.x = x;
-        level.hud_zoneShrinkAlert.y = y;
-        level.hud_zoneShrinkAlert.fontScale = fontScale;
-        level.hud_zoneShrinkAlert.color = level.color_red;
-        level.hud_zoneShrinkAlert.label = level.text_zoneIsShrinking;
-        level.hud_zoneShrinkAlert setTimer(level.zone.life / 1000);
+        
+        level.hud_zoneShrinkAlertText.color = level.color_red;
+        level.hud_zoneShrinkAlertTimer.color = level.color_red;
+        level.hud_zoneShrinkAlertText setText(level.text_zoneIsShrinking);
+        level.hud_zoneShrinkAlertTimer setTimer(msToS(level.zone.life));
 
         if(zoneModeIndex == 1)
             return; // No shrink sound alert when in plane
@@ -1153,7 +1154,7 @@ playZone(fx, static)
             level.zoneStatic.angles = level.zone.angles; // Reset angle to initial value (unhide).
             //printLnBR("playFXOnTag zoneStatic");
             playFXOnTag(fx, level.zoneStatic, level.zone.modelTag);
-            wait 10; // Using same life value in efx files for all static zones.
+            wait msToS(level.zoneStatic.life); // Using same life value in efx files for all static zones.
         }
     }
     else
@@ -1163,7 +1164,7 @@ playZone(fx, static)
         
         if (self.indexMode != self.modes.size - 1)
         {
-            wait (self.life / 1000);
+            wait msToS(self.life);
             // Play next static zone
             self.active = false;
             self thread setupZone(self.nextZoneIndex);
@@ -1173,11 +1174,12 @@ playZone(fx, static)
             // Final zone, will shrinks fully, will play nothing after.
             //printLnBR("playZone FINAL");
 
-            wait (self.life / 1000);
+            wait msToS(self.life);
             // Destroy HUD and zone objective on compass
-            wait 0.5;
-            level.hud_zoneShrinkAlert destroy();
             objective_delete(level.zone.objectiveNum);
+            wait 0.5;
+            level.hud_zoneShrinkAlertText destroy();
+            level.hud_zoneShrinkAlertTimer destroy();
         }
     }
 }
@@ -1212,7 +1214,7 @@ moveZone() // TODO: Ensure never goes out of map
     printLnBR("newZoneY = " + newZoneY);*/
     
     destinationOrigin = (newZoneX, newZoneY, self.origin[2]);
-    self moveTo(destinationOrigin, (self.life / 1000)); // To move, the efx requires "flags relative"
+    self moveTo(destinationOrigin, msToS(self.life)); // To move, the efx requires "flags relative"
 }
 keepZoneSizeVarUpdated()
 {
@@ -1235,10 +1237,12 @@ checkPlayerInZone()
     self.inZone = true;
 
     self.hudInStormAlert = newClientHudElem(self);
-    self.hudInStormAlert.x = 460;
-    self.hudInStormAlert.y = 140;
+    self.hudInStormAlert.x = 640 / 2;
+    self.hudInStormAlert.y = 480 - 15;
+    self.hudInStormAlert.alignX = "center";
+    self.hudInStormAlert.alignY = "middle";
     self.hudInStormAlert.color = level.color_red;
-    self.hudInStormAlert.fontScale = 1.3;
+    self.hudInStormAlert.fontScale = 1.2;
 
     for(;;)
     {
@@ -1288,7 +1292,7 @@ checkPlayerInZone()
                 damagePlayer = false;
                 if (isDefined(self.lastZoneDamageTime))
                 {
-                    secondsPassed = (getTime() - self.lastZoneDamageTime) / 1000;
+                    secondsPassed = msToS(getTime() - self.lastZoneDamageTime);
                     if(secondsPassed > 2)
                         damagePlayer = true;
                 }
@@ -1751,9 +1755,15 @@ updateNumLivingPlayers()
         {
             player = players[i];
             if(isAlive(player) && player.sessionstate == "playing")
-                alivePlayers += 1;
+                alivePlayers++;
         }
-        level.hud_numLivingPlayers setValue(alivePlayers);
+        
+        if(alivePlayers < 10)
+            level.hud_numLivingPlayersIcon.x = level.hud_numLivingPlayersCount.x - 28;
+        else
+            level.hud_numLivingPlayersIcon.x = level.hud_numLivingPlayersCount.x - 36;
+            
+        level.hud_numLivingPlayersCount setValue(alivePlayers);
         wait .05;
     }
 }
@@ -2815,6 +2825,11 @@ anglesToBackward(angles)
     forwardDirection = anglesToForward(angles);
     backwardDirection = maps\mp\_utility::vectorScale(forwardDirection, -1);
     return backwardDirection;
+}
+
+msToS(ms)
+{
+    return ms / 1000;
 }
 
 addBotClients()
