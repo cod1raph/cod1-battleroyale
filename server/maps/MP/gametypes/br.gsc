@@ -437,7 +437,7 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
         }
 
         if(eAttacker != self && level.damageFeedback)
-            eAttacker thread showDamageFeedback();
+            eAttacker thread showHitMarker();
     }
 
     if(!level.battleStarted)
@@ -543,10 +543,10 @@ spawnSpectator(origin, angles, died)
     else
     {
         spawnpointname = "mp_deathmatch_intermission";
-        spawnpoints = getentarray(spawnpointname, "classname");
+        spawnpoints = getEntArray(spawnpointname, "classname");
         spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
 
-        if(isdefined(spawnpoint))
+        if(isDefined(spawnpoint))
             self spawn(spawnpoint.origin, spawnpoint.angles);
         else
             maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
@@ -603,7 +603,6 @@ spawnIntermission()
     //printLnBR("spawnIntermission");
 
     self notify("spawned");
-    self notify("end_respawn");
     
     resetTimeout();
 
@@ -612,10 +611,10 @@ spawnIntermission()
     self.archivetime = 0;
 
     spawnpointname = "mp_deathmatch_intermission";
-    spawnpoints = getentarray(spawnpointname, "classname");
+    spawnpoints = getEntArray(spawnpointname, "classname");
     spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
 
-    if(isdefined(spawnpoint))
+    if(isDefined(spawnpoint))
         self spawn(spawnpoint.origin, spawnpoint.angles);
     else
         maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
@@ -811,6 +810,7 @@ startBattle()
     hud_doorOpening.label = (&"Door opens in ");
     hud_doorOpening setTimer(delayBeforeDoorOpens);
     wait delayBeforeDoorOpens; // Delay door opening
+
     players = getEntArray("player", "classname");
     for (i = 0; i < players.size; i++)
     {
@@ -820,6 +820,7 @@ startBattle()
         player thread checkPlayerInZone();
         player thread checkPlayerJumped();
     }
+
     wait 0.5;
     hud_doorOpening destroy();
 
@@ -978,8 +979,8 @@ crate_trigger_check(trigger)
 }
 crate_efx()
 {
-    life = 2;
-    entFx = playLoopedFX(level.crate_efxId, life, self.origin + (0, 0, 20));
+    efxLife = 2000;
+    entFx = playLoopedFX(level.crate_efxId, msToS(efxLife), self.origin + (0, 0, 20));
     self waittill("crate_efx_stop");
     /*
     The efx will disappear after its life completes,
@@ -1027,7 +1028,7 @@ crate_spawn_stuff(entScriptModelCrate)
     
     for(i = 0; i < stuff.size; i++)
     {
-        scale = 40; // Higher value = higher distance from crate.
+        scale = 40; // Higher value = bigger distance from crate.
         origin = entScriptModelCrate.origin + maps\mp\_utility::vectorScale(stuff[i]["direction"], scale);
         spawnedStuff = spawn(stuff[i]["stuff"], origin + (0, 0, 10));
         spawnedStuff.angles = (0, randomInt(360), 0);
@@ -1122,11 +1123,8 @@ setupZone(zoneModeIndex)
         level.hud_zoneShrinkAlertText setText(level.text_zoneIsShrinking);
         level.hud_zoneShrinkAlertTimer setTimer(msToS(level.zone.life));
 
-        if(zoneModeIndex == 1)
-            return; // No shrink sound alert when in plane
-            
-        if(level.battleOver)
-            return;
+        if(zoneModeIndex == 1 || level.battleOver)
+            return; // No shrink sound alert when in plane or if battle is over
             
         players = getEntArray("player", "classname");
         for(i = 0; i < players.size; i++)
@@ -1354,35 +1352,47 @@ checkPlayerJumped()
 
     for(;;)
     {
-        //FORCE STANDING
+        // Force standing
         if(self getStance() != "stand")
-            self setClientCvar("cl_stance", "0");
-
+            self setStance("stand");
+        
         if (self jumpButtonPressed() || isDefined(self.forceJump))
         {
             self.jumped = true;
-
+            
             self.hud_jump_parachute setText(&"");
+            
+            self.blackScreen = newClientHudElem(self);
+            self.blackScreen.sort = -2;
+            self.blackScreen.alignX = "left";
+            self.blackScreen.alignY = "top";
+            self.blackScreen.x = 0;
+            self.blackScreen.y = 0;
+            self.blackScreen.alpha = 0;
+            self.blackScreen setShader("black", 640, 480);
+            self.blackScreen fadeOverTime(0.25);
+            self.blackScreen.alpha = 1;
+            wait 0.25;
 
             anglesBeforeSpawn = self getPlayerAngles();
-            self spawnPlayer(level.planePov.origin, anglesBeforeSpawn);
-            self.inPlane = false;
 
-            delayExitPlane = 0.50;
+            wait 0.75;
+            
             underPlaneOrigin =
-                (level.planePov.origin[0],
-                level.planePov.origin[1] - 100,
-                (level.planePov.origin[2] - 1000));
+                (level.plane.origin[0],
+                level.plane.origin[1] - 800,
+                (level.plane.origin[2] - 500));
+            
+            self spawnPlayer(underPlaneOrigin, anglesBeforeSpawn);
+            self.inPlane = false;
+            
+            self.blackScreen fadeOverTime(0.1);
+            self.blackScreen.alpha = 0;
+            wait 0.1;
+            self.blackScreen destroy();
 
-            self.jumpPov = spawn("script_origin", level.planePov.origin);
-
-            self linkTo(self.jumpPov);
-            self.jumpPov moveTo(underPlaneOrigin, delayExitPlane);
-            wait delayExitPlane;
             self showToPlayer(undefined); // Make player visible to others
-
-            self unLink();
-            self.jumpPov delete();
+            
             self thread checkPlayerDive();
 
             break;
@@ -1391,7 +1401,7 @@ checkPlayerJumped()
         wait .05;
     }
 }
-checkReleasedUseButton()
+checkReleasedJumpButton()
 {
     self endon("death");
     self endon("spawned_spectator");
@@ -1410,7 +1420,7 @@ checkPlayerDive()
     self.parachuteEnabled = false;
     self.parachuteDeploymentForced = false;
 
-    self thread checkLanded();
+    thread checkLanded();
 
     text_hud_jump_parachute_part1 = "Press ^1[{+gostand}] ^7to ";
     text_hud_jump_parachute_part2 = "open";
@@ -1443,9 +1453,9 @@ checkPlayerDive()
     // Check movements
     for(;;)
     {
-        // Force standing
+        // Force standing // TODO: Make player appear proned/skydiving when parachute is closed
         if(self getStance() != "stand")
-            self setClientCvar("cl_stance", "0");
+            self setStance("stand");
 
         // Direction keys check
         goingForward = self forwardButtonPressed();
@@ -1471,7 +1481,7 @@ checkPlayerDive()
         if (self jumpButtonPressed() && !self.blockParachuteCheck)
         {
             self.blockParachuteCheck = true;
-            self thread checkReleasedUseButton();
+            thread checkReleasedJumpButton();
             checkParachute = true;
         }
         
@@ -1518,7 +1528,7 @@ checkPlayerDive()
                 text_hud_jump_parachute_part2 = "open";
             }
 
-            //TODO: Check if should update existing localized string instead.
+            // TODO: Check if should update existing localized string instead.
             text_hud_jump_parachute_part_concatenated = text_hud_jump_parachute_part1 + text_hud_jump_parachute_part2 + text_hud_jump_parachute_part3;
             text_hud_jump_parachute_part_concatenated_localized = makeLocalizedString(text_hud_jump_parachute_part_concatenated);
             self.hud_jump_parachute setText(text_hud_jump_parachute_part_concatenated_localized);
@@ -1638,12 +1648,12 @@ checkPlayerDive()
                 newVelocity = maps\mp\_utility::vectorScale((newVelocity_x, newVelocity_y, newVelocity_z), airResistance_parachute_idle);
             }
             
-            // Clamp z velocity when parachute is deployed to prevent crashing
+            // Clamp z velocity when parachute is deployed to prevent fall damage death
             maxZVelocity = -700;
             if(newVelocity[2] < maxZVelocity)
                 newVelocity = (newVelocity[0], newVelocity[1], maxZVelocity);
         }
-        else // Parachute is disabled
+        else // Parachute not deployed
         {
             if (goingForward)
             {
@@ -1723,7 +1733,7 @@ checkLanded()
             if(isDefined(self.hud_jump_parachute))
                 self.hud_jump_parachute destroy();
 
-            // Check landed under map
+            // Check landed under map // TODO: Add a trigger death to map instead
             if (self.origin[2] < -600)
             {
                 self suicide();
@@ -1822,6 +1832,7 @@ checkVictoryRoyale(playerEntity)
             winner.hud_victoryRoyale.color = (0.26, 1, 0.35);
             winner.hud_victoryRoyale.fontScale = 1.5;
             winner.hud_victoryRoyale.font = "bigfixed";
+            winner.hud_victoryRoyale.sort = 2;
             winner.hud_victoryRoyale setText(&"YOU WIN!");
             
             level.winnerName = winner.name;
@@ -1877,7 +1888,7 @@ endMap(timeWaitedAfterDeath, playerEntity)
 {
     if (!level.noWinner)
     {
-        if(isDefined(playerEntity)) //TODO: Try to display player's camera before he disconnected.
+        if(isDefined(playerEntity)) // TODO: Try to display player's camera before he disconnected.
             level setupFinalKillcam(timeWaitedAfterDeath, playerEntity);
     }
 
@@ -1906,27 +1917,28 @@ endMap(timeWaitedAfterDeath, playerEntity)
     map_restart(false);
 }
 
-showDamageFeedback()
+showHitMarker()
 {
     self endon("spawned");
+    self endon("spawned_spectator");
 
-    if(isDefined(self.hitBlip))
-        self.hitBlip destroy();
+    if(isDefined(self.hitMarker))
+        self.hitMarker destroy();
 
-    self.hitBlip = newClientHudElem(self);
-    self.hitBlip.alignX = "center";
-    self.hitBlip.alignY = "middle";
-    self.hitBlip.x = 320;
-    self.hitBlip.y = 240;
-    self.hitBlip.alpha = 1;
-    self.hitBlip setShader("gfx/hud/damage_feedback.dds", 24, 24);
+    self.hitMarker = newClientHudElem(self);
+    self.hitMarker.alignX = "center";
+    self.hitMarker.alignY = "middle";
+    self.hitMarker.x = 320;
+    self.hitMarker.y = 240;
+    self.hitMarker.alpha = 1;
+    self.hitMarker setShader("gfx/hud/damage_feedback.dds", 24, 24);
 
-    self.hitBlip fadeOverTime(1);
-    self.hitBlip.alpha = 0;
+    self.hitMarker fadeOverTime(1);
+    self.hitMarker.alpha = 0;
 
     wait 0.30;
-    if(isDefined(self.hitBlip))
-        self.hitBlip destroy();
+    if(isDefined(self.hitMarker))
+        self.hitMarker destroy();
 }
 
 //// Killcam
@@ -1940,9 +1952,8 @@ setupFinalKillcam(timeWaitedAfterDeath, playerEntity)
 
         if (isDefined(player.killcam))
         {
-            // Already running killcam, stop it
-            player notify("spawned");
-            wait .05;
+            // Running normal killcam, stop it
+            player notify("killcam_stop");
             player.spectatorclient = -1;
             player.archivetime = 0;
             player removeKillcamElements();
@@ -1960,6 +1971,7 @@ setupFinalKillcam(timeWaitedAfterDeath, playerEntity)
 killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 {
     self endon("spawned");
+    self endon("killcam_stop");
 
     if (!isPlayer(attackerEntity))
     {
@@ -2090,7 +2102,7 @@ killcamFinal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
     }
     self.kc_timer setTenthsTimer(totalDurationBeforeKill);
     
-    wait (self.archivetime);
+    wait self.archivetime;
 
     self.spectatorclient = -1;
     self.archivetime = 0;
