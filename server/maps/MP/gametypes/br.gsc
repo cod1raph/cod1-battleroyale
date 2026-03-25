@@ -835,6 +835,8 @@ startBattle()
             player.forceJump = true;
     }
 
+    wait 2.5; // Delay plane ent deletion because it will be used in checkPlayerJumped() // TODO: Cleanup
+
     level.plane stopLoopSound();
     level.plane delete();
     level.planePov delete();
@@ -1363,7 +1365,6 @@ checkPlayerJumped()
             self.hud_jump_parachute setText(&"");
             
             self.blackScreen = newClientHudElem(self);
-            self.blackScreen.sort = -2;
             self.blackScreen.alignX = "left";
             self.blackScreen.alignY = "top";
             self.blackScreen.x = 0;
@@ -1376,12 +1377,12 @@ checkPlayerJumped()
 
             anglesBeforeSpawn = self getPlayerAngles();
 
-            wait 0.75;
+            wait 0.5;
             
             underPlaneOrigin =
                 (level.plane.origin[0],
-                level.plane.origin[1] - 800,
-                (level.plane.origin[2] - 500));
+                level.plane.origin[1] - 700,
+                (level.plane.origin[2] - 400));
             
             self spawnPlayer(underPlaneOrigin, anglesBeforeSpawn);
             self.inPlane = false;
