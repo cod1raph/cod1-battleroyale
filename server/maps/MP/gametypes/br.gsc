@@ -1910,12 +1910,16 @@ endMap(timeWaitedAfterDeath, playerEntity)
         player spawnIntermission();
     }
     wait 3;
+    
     /*
-    CoD1.1 might have an issue about the server getting stuck on scoreboard after calling exitLevel,
+    CoD1.1, and maybe above, might have an issue about the server getting stuck on scoreboard after calling exitLevel/map_restart under some circumstances.
     MiscMod seems to have some fix for it, see: https://github.com/cato-a/CoDaM_MiscMod/blob/88d6e7cae513080e30f2599972b67a85fd6e61d1/___CoDaM_MiscMod/codam/miscmod.gsc#L250
-    Now replacing exitLevel by map_restart hoping it will not occur again.
+    3/25/2026: Trying to stop this issue from occurring
+    See IzNoGoD message on Killtube Discord: https://discord.com/channels/429528998868025354/446576898508587009/1486459225357025412
     */
-    map_restart(false);
+    setCvar("g_gametype", getCvar("g_gametype"));
+    setCvar("sv_maprotation", "map " + getCvar("mapname"));
+    exitLevel(false);
 }
 
 showHitMarker()
