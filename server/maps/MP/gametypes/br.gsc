@@ -200,9 +200,9 @@ Callback_StartGameType()
     // Menus
     game["menu_camouflage"] = "camouflage";
     game["menu_viewmap"] = "viewmap";
-    game["menu_quickcommands"] = "quickcommands";
-    game["menu_quickstatements"] = "quickstatements";
-    game["menu_quickresponses"] = "quickresponses";
+    game["menu_quickcommands"] = "quickCommands";
+    game["menu_quickstatements"] = "quickStatements";
+    game["menu_quickresponses"] = "quickResponses";
     precacheMenu(game["menu_camouflage"]);
     precacheMenu(game["menu_viewmap"]);
     precacheMenu(game["menu_quickcommands"]);
@@ -294,7 +294,6 @@ Callback_StartGameType()
     mapCredit.x = 1;
     mapCredit.y = 480 - 7;
     mapCredit.fontScale = 0.6;
-    mapCredit.sort = -1;
     mapCredit setText(&"Map by zilch (modified)");
 }
 Callback_PlayerConnect()
@@ -382,11 +381,11 @@ Callback_PlayerConnect()
             }
         }
         else if(menu == game["menu_quickcommands"])
-            quickcommands(response);
+            quickCommands(response);
         else if(menu == game["menu_quickstatements"])
-            quickstatements(response);
+            quickStatements(response);
         else if(menu == game["menu_quickresponses"])
-            quickresponses(response);
+            quickResponses(response);
     }
 }
 Callback_PlayerDisconnect()
@@ -634,7 +633,6 @@ checkBattleReady()
     level.hud_waitingBackground.x = 320;
     level.hud_waitingBackground.y = 20;
     level.hud_waitingBackground.alpha = 0.6;
-    level.hud_waitingBackground.sort = -1;
     level.hud_waitingBackground setShader("black", 365, 66);
 
     level.hud_waitingForPlayers = newHudElem();
@@ -1495,7 +1493,8 @@ checkPlayerDive()
             if (trace_position_distance < 1200)
             {
                 self.parachuteDeploymentForced = true;
-
+                
+                self playsound("parachute_open");
                 self giveWeapon(level.parachute_deployed_hands);
                 self switchToWeapon(level.parachute_deployed_hands);
                 self.parachuteEnabled = true;
@@ -1510,6 +1509,7 @@ checkPlayerDive()
             if (!self.parachuteEnabled)
             {
                 // Opened
+                self playsound("parachute_open");
                 self giveWeapon(level.parachute_deployed_hands);
                 self switchToWeapon(level.parachute_deployed_hands);
 
@@ -2016,7 +2016,7 @@ killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
         self.kc_title.y = 40;
         self.kc_title.alignX = "center";
         self.kc_title.alignY = "middle";
-        self.kc_title.sort = 1; // force to draw after the bars
+        self.kc_title.sort = 1;
         self.kc_title.fontScale = 2.5;
     }
     self.kc_title setText(&"MPSCRIPT_KILLCAM");
@@ -2028,7 +2028,7 @@ killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
         self.kc_skiptext.y = 70;
         self.kc_skiptext.alignX = "center";
         self.kc_skiptext.alignY = "middle";
-        self.kc_skiptext.sort = 1; // force to draw after the bars
+        self.kc_skiptext.sort = 1;
     }
     self.kc_skiptext setText(&"MPSCRIPT_PRESS_ACTIVATE_TO_SKIP");
     if (!isdefined(self.kc_timer))
@@ -2046,9 +2046,10 @@ killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 
     self thread waitSkipKillcamButton();
     self thread waitKillcamTime();
-    self waittill("end_killcam");
-    self removeKillcamElements();
 
+    self waittill("end_killcam");
+
+    self removeKillcamElements();
     self.spectatorclient = -1;
     self.archivetime = 0;
     self.killcam = undefined;
@@ -2089,11 +2090,10 @@ killcamFinal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
         self.kc_title.y = 10;
         self.kc_title.alignX = "center";
         self.kc_title.alignY = "middle";
-        self.kc_title.sort = 1; // force to draw after the bars
+        self.kc_title.sort = 1;
         self.kc_title.fontScale = 1.8;
     }
     self.kc_title setText(&"MPSCRIPT_KILLCAM");
-
     if (!isdefined(self.kc_timer))
     {
         self.kc_timer = newClientHudElem(self);
@@ -2146,7 +2146,7 @@ removeKillcamElements()
 ////
 
 //// Quick chat
-quickcommands(response)
+quickCommands(response)
 {
     if(!isDefined(self.pers["camouflage"]) || isDefined(self.spamdelay))
         return;
@@ -2331,7 +2331,7 @@ quickcommands(response)
     wait level.quickChatDelay;
     self.spamdelay = undefined;
 }
-quickstatements(response)
+quickStatements(response)
 {
     if(!isDefined(self.pers["camouflage"]) || isDefined(self.spamdelay))
         return;
@@ -2498,7 +2498,7 @@ quickstatements(response)
     wait level.quickChatDelay;
     self.spamdelay = undefined;
 }
-quickresponses(response)
+quickResponses(response)
 {
     if(!isDefined(self.pers["camouflage"]) || isDefined(self.spamdelay))
         return;
