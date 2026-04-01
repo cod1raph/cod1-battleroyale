@@ -1,4 +1,6 @@
 > [!IMPORTANT]
+> 4/1/2026  
+> Renamed `br_damagefeedback` cvar to `br_hitmarker`
 > 3/24/2026  
 > Renamed `br_zoneDuration` cvar to `br_staticZoneDuration`
 

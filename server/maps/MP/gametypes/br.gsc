@@ -53,9 +53,9 @@ main()
     if(getCvarInt("br_instantkill_melee"))
         level.instantKill_melee = true;
     
-    level.damageFeedback = false;
-    if(getCvarInt("br_damagefeedback"))
-        level.damageFeedback = true;
+    level.hitmarker = false;
+    if(getCvarInt("br_hitmarker"))
+        level.hitmarker = true;
     
     level.staticZoneDuration = 60;
     if(getCvarInt("br_staticZoneDuration"))
@@ -435,7 +435,7 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
                 iDamage = self.health;
         }
 
-        if(eAttacker != self && level.damageFeedback)
+        if(eAttacker != self && level.hitmarker)
             eAttacker thread showHitMarker();
     }
 
@@ -730,7 +730,9 @@ startBattle()
 
     level endon("battle_cancel");
     level.startingBattle = true;
+
     wait level.startBattleCountdown;
+
     level notify("battle_start");
 
     level.startingBattle = false;
@@ -755,6 +757,7 @@ startBattle()
 
     crates_setup();
 
+    // TODO: Randomize plane route
     originPlane = (-1520, 12000, 7000);
     anglesPlane = (0, -90, 0);
     level.plane = spawn("script_model", originPlane);
@@ -807,6 +810,7 @@ startBattle()
     hud_doorOpening.fontScale = 1.1;
     hud_doorOpening.label = (&"Door opens in ");
     hud_doorOpening setTimer(delayBeforeDoorOpens);
+
     wait delayBeforeDoorOpens; // Delay door opening
 
     players = getEntArray("player", "classname");
