@@ -45,7 +45,7 @@ mapname: `zh_elusive`
 - [MiscMod](https://github.com/cato-a/CoDaM_MiscMod)
 - [Killtube](https://killtube.org)
 - [iBuddie's script documentation](https://www.ibuddie.at/libcod)
-- [zh_Elusive](https://vcodmods.com/maps/zh_elusive-battle-royal-template-)
+- [zh_Elusive](https://vcodmods.com/maps/zh-elusive-battle-royal-template)
 - [CoD1 Radiant Tutorials by TheGoog](https://www.youtube.com/playlist?list=PLb5ihZo7ved010imAmoZxa5C5946Oi-9z)
 - [CoDRadiant Beginner Tutorials by zilch](https://www.youtube.com/@hcliz/videos) (Oct 24, 2024)
 - [TheGoog-CoD1-map-collection](https://github.com/thegoog1337/TheGoog-CoD1-map-collection)
