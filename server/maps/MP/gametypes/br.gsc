@@ -295,11 +295,15 @@ Callback_StartGameType()
     mapCredit.y = 480 - 7;
     mapCredit.fontScale = 0.6;
     mapCredit setText(&"Map by zilch (modified)");
+
+    initDB();
 }
 Callback_PlayerConnect()
 {
     self.statusicon = "gfx/hud/hud@status_connecting.tga";
     self waittill("begin");
+
+    thread updatePlayersCountTable();
 
     self.statusicon = "";
     if (game["state"] == "intermission")
@@ -510,6 +514,82 @@ Callback_PlayerKilled(eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vD
         currentangles = self getPlayerAngles();
         self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles, true);
     }
+}
+////
+
+//// Stats
+initDB()
+{
+    if (getCvar("br_dbDirPath") == "")
+	{
+		printLnBR("br_dbDirPath cvar is empty, aborting DB init");
+		return;
+	}
+    
+    dbFilePath = getCvar("br_dbDirPath") + "/stats.db";
+	
+	level.statsDB = sqlite_open(dbFilePath); // DB file will get created if doesn't exist
+
+	// Create table if doesn't exist
+	query_create = "CREATE TABLE IF NOT EXISTS player_counts (timestamp INTEGER, count INTEGER);";
+	sqlite_query(level.statsDB, query_create);
+	
+	// Delete entries older than 7 days
+	query_delete = "DELETE FROM player_counts WHERE timestamp < strftime('%s', 'now', '-7 days')";
+	sqlite_query(level.statsDB, query_delete);
+
+	async_sqlite_initialize();
+	thread async_sqlite_checkdone_loop(); // For the callback functions of async queries to get called
+}
+
+async_sqlite_checkdone_loop()
+{
+	for (;;)
+	{
+		async_sqlite_checkdone();
+		wait .05;
+	}
+}
+
+playersCountQueryCallback(rows, arg)
+{
+	if (arg == "update")
+	{
+		// Retrieve max simultaneously connected players in the past 7 days
+		query_select = "SELECT timestamp, count FROM player_counts WHERE timestamp >= strftime('%s', 'now', '-7 days') ORDER BY count DESC LIMIT 1";
+		async_sqlite_create_query(level.statsDB, query_select, ::playersCountQueryCallback, "retrieve");
+	}
+	else if (arg == "retrieve")
+	{
+		if (rows.size)
+		{
+			past7daysMax = rows[0][1];
+			past7daysTimestamp = (int)rows[0][0];
+			dayMonth = strftime(past7daysTimestamp, "utc", "%d/%m %Z");
+
+            if (!isDefined(level.hud_statsMaxPlayers))
+            {
+                level.hud_statsMaxPlayers = newHudElem();
+                level.hud_statsMaxPlayers.x = 2;
+                level.hud_statsMaxPlayers.y = 1;
+                level.hud_statsMaxPlayers.fontScale = 0.8;
+            }
+            hudText = "Peak players (last 7 days): ^2" + past7daysMax + "^7 (" + dayMonth + ")";
+            hudText_localized = makeLocalizedString(hudText);
+            level.hud_statsMaxPlayers setText(hudText_localized);
+		}
+	}
+}
+
+updatePlayersCountTable()
+{
+	if(!isDefined(level.statsDB))
+        return;
+        
+	wait .05;
+	playersCount = getEntArray("player", "classname").size;
+	query_insert = "INSERT INTO player_counts (timestamp, count) VALUES (strftime('%s','now'), " + playersCount + ")";
+	async_sqlite_create_query(level.statsDB, query_insert, ::playersCountQueryCallback, "update");
 }
 ////
 
