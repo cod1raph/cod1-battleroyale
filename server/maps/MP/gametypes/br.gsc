@@ -496,6 +496,8 @@ Callback_PlayerKilled(eInflictor, eAttacker, iDamage, sMeansOfDeath, sWeapon, vD
                 doKillcam = true;
             }
             eAttacker.score++;
+
+            thread updateTopKillsTable(eAttacker.score, eAttacker.name);
         }
     }
     body = self cloneplayer();
@@ -530,16 +532,22 @@ initDB()
 	
 	level.statsDB = sqlite_open(dbFilePath); // DB file will get created if doesn't exist
 
-	// Create table if doesn't exist
+	// Create "peak players" table if doesn't exist
 	query_create = "CREATE TABLE IF NOT EXISTS player_counts (timestamp INTEGER, count INTEGER);";
 	sqlite_query(level.statsDB, query_create);
-	
-	// Delete entries older than 7 days
+    // Delete entries older than 7 days
 	query_delete = "DELETE FROM player_counts WHERE timestamp < strftime('%s', 'now', '-7 days')";
 	sqlite_query(level.statsDB, query_delete);
+    
+    // Create "top players" table if doesn't exist
+    query_create = "CREATE TABLE IF NOT EXISTS player_best_kills (name TEXT PRIMARY KEY, best_kills INTEGER, last_update INTEGER);";
+	sqlite_query(level.statsDB, query_create);
 
 	async_sqlite_initialize();
 	thread async_sqlite_checkdone_loop(); // For the callback functions of async queries to get called
+
+    // Init top kills HUD
+    topKillsRetrieve();
 }
 
 async_sqlite_checkdone_loop()
@@ -570,9 +578,11 @@ playersCountQueryCallback(rows, arg)
             if (!isDefined(level.hud_statsMaxPlayers))
             {
                 level.hud_statsMaxPlayers = newHudElem();
-                level.hud_statsMaxPlayers.x = 2;
-                level.hud_statsMaxPlayers.y = 1;
-                level.hud_statsMaxPlayers.fontScale = 0.8;
+                level.hud_statsMaxPlayers.x = 640 / 2;
+                level.hud_statsMaxPlayers.y = 480 - 8;
+                level.hud_statsMaxPlayers.alignX = "center";
+                level.hud_statsMaxPlayers.alignY = "middle";
+                level.hud_statsMaxPlayers.fontScale = 0.75;
             }
             hudText = "Peak players (last 7 days): ^2" + past7daysMax + "^7 (" + dayMonth + ")";
             hudText_localized = makeLocalizedString(hudText);
@@ -590,6 +600,63 @@ updatePlayersCountTable()
 	playersCount = getEntArray("player", "classname").size;
 	query_insert = "INSERT INTO player_counts (timestamp, count) VALUES (strftime('%s','now'), " + playersCount + ")";
 	async_sqlite_create_query(level.statsDB, query_insert, ::playersCountQueryCallback, "update");
+}
+
+topKillsRetrieve()
+{
+    query_select = "SELECT name, best_kills FROM player_best_kills ORDER BY best_kills DESC, last_update ASC LIMIT 3;";
+    async_sqlite_create_query(level.statsDB, query_select, ::topKillsQueryCallback, "retrieve");
+}
+
+topKillsQueryCallback(rows, arg)
+{
+    if (arg == "update")
+    {
+        topKillsRetrieve();
+    }
+    else if (arg == "retrieve")
+    {
+        // TODO: If multiple players have same kill record, group them together
+        if (rows.size)
+		{
+            hudText = "Kill records: ";
+
+            for (i = 0; i < rows.size; i++)
+            {
+                name = rows[i][0];
+                kills = rows[i][1];
+                
+                hudText += "^2" + kills + " ^7(" + name + "^7)";
+
+                if(i < rows.size - 1)
+                    hudText += " || ";
+            }
+            
+            if (!isDefined(level.hud_statsTopPlayers))
+            {
+                level.hud_statsTopPlayers = newHudElem();
+                level.hud_statsTopPlayers.x = 2;
+                level.hud_statsTopPlayers.y = 1;
+                level.hud_statsTopPlayers.fontScale = 0.9;
+            }
+            hudText_localized = makeLocalizedString(hudText);
+            level.hud_statsTopPlayers setText(hudText_localized);
+        }
+    }
+}
+
+updateTopKillsTable(score, name)
+{
+    if(!isDefined(level.statsDB))
+        return;
+
+    name = sqlite_escape_string(name);
+    
+    query_insert =
+    "INSERT INTO player_best_kills (name, best_kills, last_update)"
+    +" VALUES ('" + name + "', " + score + ", strftime('%s', 'now'))"
+    +" ON CONFLICT(name) DO UPDATE SET best_kills = MAX(best_kills, excluded.best_kills), last_update = strftime('%s', 'now');";
+    async_sqlite_create_query(level.statsDB, query_insert, ::topKillsQueryCallback, "update");
 }
 ////
 
@@ -1328,7 +1395,7 @@ checkPlayerInZone()
 
     self.hudInStormAlert = newClientHudElem(self);
     self.hudInStormAlert.x = 640 / 2;
-    self.hudInStormAlert.y = 480 - 15;
+    self.hudInStormAlert.y = 60;
     self.hudInStormAlert.alignX = "center";
     self.hudInStormAlert.alignY = "middle";
     self.hudInStormAlert.color = level.color_red;
