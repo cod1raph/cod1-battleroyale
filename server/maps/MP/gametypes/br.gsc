@@ -655,7 +655,9 @@ updateTopKillsTable(score, name)
     query_insert =
     "INSERT INTO player_best_kills (name, best_kills, last_update)"
     +" VALUES ('" + name + "', " + score + ", strftime('%s', 'now'))"
-    +" ON CONFLICT(name) DO UPDATE SET best_kills = MAX(best_kills, excluded.best_kills), last_update = strftime('%s', 'now');";
+    +" ON CONFLICT(name) DO UPDATE SET"
+    +" best_kills = excluded.best_kills, last_update = strftime('%s', 'now')"
+    +" WHERE excluded.best_kills > best_kills;";
     async_sqlite_create_query(level.statsDB, query_insert, ::topKillsQueryCallback, "update");
 }
 ////
