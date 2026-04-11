@@ -1390,6 +1390,7 @@ checkPlayerInZone()
 {
     self endon("death");
     self endon("spawned_spectator");
+    self endon("finalKillcam_start");
 
     self.inZone = true;
 
@@ -1492,6 +1493,7 @@ checkPlayerJumped()
 {
     self endon("death");
     self endon("spawned_spectator");
+    self endon("finalKillcam_start");
 
     self.hud_jump_parachute = newClientHudElem(self);
     self.hud_jump_parachute.alignX = "center";
@@ -1556,6 +1558,7 @@ checkReleasedJumpButton()
     self endon("death");
     self endon("spawned_spectator");
     self endon("landed");
+    self endon("finalKillcam_start");
 
     while(self jumpButtonPressed())
         wait .05;
@@ -1566,6 +1569,7 @@ checkPlayerDive()
     self endon("death");
     self endon("spawned_spectator");
     self endon("landed");
+    self endon("finalKillcam_start");
 
     self.parachuteEnabled = false;
     self.parachuteDeploymentForced = false;
@@ -1875,6 +1879,7 @@ checkLanded()
 {
     self endon("death");
     self endon("spawned_spectator");
+    self endon("finalKillcam_start");
     
     for(;;)
     {
@@ -2211,6 +2216,8 @@ killcamNormal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 }
 killcamFinal(attackerEntity, timeWaitedAfterDeath, totalDurationBeforeKill)
 {
+    self notify("finalKillcam_start");
+
     self.sessionstate = "spectator";
     self.spectatorclient = attackerEntity getEntityNumber();
     self.archivetime = timeWaitedAfterDeath + totalDurationBeforeKill;
