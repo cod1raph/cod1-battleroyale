@@ -1289,6 +1289,7 @@ setupZone(zoneModeIndex)
 playZone(fx, static)
 {
     //printLnBR("playZone");
+    level endon("zone_static_stop");
     
     if (static)
     {
@@ -1307,8 +1308,6 @@ playZone(fx, static)
         
         for(;;)
         {
-            level endon("zone_static_stop");
-
             level.zoneStatic.origin = level.zone.origin; // Set to new moved origin.
             level.zoneStatic.angles = level.zone.angles; // Reset angle to initial value (unhide).
             //printLnBR("playFXOnTag zoneStatic");
@@ -3014,7 +3013,7 @@ anglesToBackward(angles)
 
 msToS(ms)
 {
-    return ms / 1000;
+    return ms / 1000.0; // Using ".0" or would lose precision (would always return int if ms was int)
 }
 
 addBotClients()
