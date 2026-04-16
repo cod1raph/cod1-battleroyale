@@ -1,13 +1,3 @@
-> [!CAUTION]
-> 4/7/2026  
-> Server can shut down with error `exceeded maximum number of script variables`, that should be fixed soon
-
-> [!IMPORTANT]
-> 4/1/2026  
-> Renamed `br_damagefeedback` cvar to `br_hitmarker`  
-> 3/24/2026  
-> Renamed `br_zoneDuration` cvar to `br_staticZoneDuration`
-
 # CoD 1.1 Battle Royale gametype
 
 Some features are:
